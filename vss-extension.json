@@ -2,7 +2,7 @@
     "manifestVersion": 1,
     "id": "GPTCodeReview",
     "name": "GPT Code Review",
-    "version": "0.0.3",
+    "version": "0.0.4",
     "publisher": "JaeilYu",
     "galleryFlags": [
         "Public",
@@ -13,7 +13,7 @@
             "id": "Microsoft.VisualStudio.Services"
         }
     ],
-    "description": "A task that code review Pull Request using GPT model from OpenAI",
+    "description": "A task that code review Pull Request using GPT model",
     "categories": [
         "Azure Pipelines"
     ],
