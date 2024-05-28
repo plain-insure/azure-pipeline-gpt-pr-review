@@ -48,10 +48,22 @@ async function run() {
     }
 
     let filesNames = await getChangedFiles(targetBranch);
+    console.log("=====================================");
+    console.log("Changed Files");
+    console.log("=====================================");
+    console.log(filesNames);
+    console.log("=====================================");
+
     const filePattern = tl.getInput("file_pattern");
     if (filePattern) {
       filesNames = filterFilesByPattern(filesNames, new RegExp(filePattern));
     }
+
+    console.log("=====================================");
+    console.log("Filtered Changed Files");
+    console.log("=====================================");
+    console.log(filesNames);
+    console.log("=====================================");
 
     await deleteExistingComments(httpsAgent);
 
