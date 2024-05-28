@@ -98,14 +98,20 @@ export async function reviewFile(input: {
       });
 
       const response = await request.json();
-
-      return response;
-
       choices = response.choices;
     }
 
     if (choices && choices.length > 0) {
       const review = choices[0].message?.content as string;
+
+      console.log("Review File:", input.fileName);
+      console.log("====================================");
+      console.log("Review Start");
+      console.log("====================================");
+      console.log(review);
+      console.log("====================================");
+      console.log("Review End");
+      console.log("====================================");
 
       if (review.trim() !== "No feedback.") {
         if (process.env.NODE_ENV == "test") {
