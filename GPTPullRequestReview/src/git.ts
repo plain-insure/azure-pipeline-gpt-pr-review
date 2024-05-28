@@ -1,25 +1,66 @@
-import { SimpleGitOptions, SimpleGit, simpleGit } from 'simple-git';
+import { SimpleGitOptions, SimpleGit, simpleGit } from "simple-git";
 import * as tl from "azure-pipelines-task-lib/task";
-import binaryExtensions from 'binary-extensions';
-import { getFileExtension } from './utils';
+import binaryExtensions from "binary-extensions";
+import { getFileExtension } from "./utils";
+
+const baseDir = (() => {
+  let result = "";
+  console.log("process.env.NODE_ENV==", process.env.NODE_ENV);
+
+  if (process.env.NODE_ENV != "test") {
+    result = `${tl.getVariable("System.DefaultWorkingDirectory")}`;
+  }
+  return result;
+})();
 
 const gitOptions: Partial<SimpleGitOptions> = {
-  baseDir: `${tl.getVariable('System.DefaultWorkingDirectory')}`,
-  binary: 'git'
+  baseDir: baseDir,
+  binary: "git",
 };
 
 export const git: SimpleGit = simpleGit(gitOptions);
 
-export async function getChangedFiles(targetBranch: string) {
-  await git.addConfig('core.pager', 'cat');
-  await git.addConfig('core.quotepath', 'false');
-  await git.fetch();
+export async function getChangedFiles(
+  targetBranch: string,
+  inputGit?: SimpleGit
+) {
+  const __git = inputGit || git;
+  await __git.addConfig("core.pager", "cat");
+  await __git.addConfig("core.quotepath", "false");
+  await __git.fetch();
 
-  const diffs = await git.diff([targetBranch, '--name-only', '--diff-filter=AM']);
-  const files = diffs.split('\n').filter(line => line.trim().length > 0);
-  const nonBinaryFiles = files.filter(file => !binaryExtensions.includes(getFileExtension(file)));
+  console.log("targetBranch ::= ", targetBranch);
 
-  console.log(`Changed Files (excluding binary files) : \n ${nonBinaryFiles.join('\n')}`);
+  const diffs = await __git.diff([
+    targetBranch,
+    "--name-only",
+    "--diff-filter=AMD",
+  ]);
+  const files = diffs.split("\n").filter((line) => line.trim().length > 0);
+  const nonBinaryFiles = files.filter(
+    (file) => !binaryExtensions.includes(getFileExtension(file))
+  );
+
+  console.log(
+    `Changed Files (excluding binary files) : \n ${nonBinaryFiles.join("\n")}`
+  );
+
+  console.log(nonBinaryFiles);
 
   return nonBinaryFiles;
+}
+
+export function filterFilesByPattern(
+  inputFiles: string[],
+  inputPattern?: RegExp
+) {
+  let result = [];
+
+  if (inputPattern) {
+    result = inputFiles.filter((file) => inputPattern.test(file));
+  } else {
+    result = inputFiles;
+  }
+
+  return result;
 }

@@ -1,5 +1,5 @@
 {
-  "id": "b42fa530-c4a6-11ed-87f6-d1f44a1fead1",
+  "id": "bcc7c0c3-a2c3-4849-a429-59aba0087efb",
   "name": "GPTPullRequestReview",
   "friendlyName": "Review PullRequest by GPT",
   "description": "This task use OpenAi GPT model to review PullRequests",
@@ -54,6 +54,33 @@
       "defaultValue": "false",
       "required": false,
       "helpMarkDown": "Select this option to support self-signed certificate."
+    },
+    {
+      "name": "aoi_instruction",
+      "type": "string",
+      "label": "Custom Prompt Instructions. It appended to the default instructions.",
+      "defaultValue": "",
+      "required": false,
+      "helpMarkDown": "Custom Prompt Instructions. (optional)"
+    },
+    {
+      "name": "file_pattern",
+      "type": "string",
+      "label": "regexp string for filtering files. (optional)",
+      "defaultValue": "",
+      "required": false,
+      "helpMarkDown": "regexp string for filtering (optional)"
+    },
+    {
+      "name": "comment_language",
+      "type": "pickList",
+      "label": "OpenAI model",
+      "required": true,
+      "options": {
+        "en": "English",
+        "ko": "Korean"
+      },
+      "helpMarkDown": "Comment Language."
     }
   ],
   "execution": {
