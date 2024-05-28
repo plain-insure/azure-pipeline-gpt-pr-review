@@ -1,5 +1,5 @@
 import { SimpleGitOptions, SimpleGit, simpleGit } from "simple-git";
-import * as tl from "azure-pipelines-task-lib/task";
+import * as tl from "azure-pipelines-task-lib";
 import binaryExtensions from "binary-extensions";
 import { getFileExtension } from "./utils";
 

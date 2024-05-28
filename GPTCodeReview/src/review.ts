@@ -3,7 +3,7 @@ import { git } from "./git";
 import { OpenAIApi } from "openai";
 import { addCommentToPR } from "./pr";
 import { Agent } from "https";
-import * as tl from "azure-pipelines-task-lib/task";
+import * as tl from "azure-pipelines-task-lib";
 import { SimpleGit } from "simple-git";
 
 const prompts = {

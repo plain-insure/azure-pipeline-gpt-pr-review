@@ -1,4 +1,4 @@
-import * as tl from "azure-pipelines-task-lib/task";
+import * as tl from "azure-pipelines-task-lib";
 import { Configuration, OpenAIApi } from "openai";
 import { deleteExistingComments } from "./pr";
 import { reviewFile } from "./review";
