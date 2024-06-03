@@ -19,35 +19,6 @@
   "instanceNameFormat": "GPTPullRequestReview $(message)",
   "inputs": [
     {
-      "name": "api_key",
-      "type": "string",
-      "label": "Api key",
-      "defaultValue": "",
-      "required": true,
-      "helpMarkDown": "Api key of OpenAi or Azure OpenAI."
-    },
-    {
-      "name": "model",
-      "type": "pickList",
-      "label": "OpenAI model",
-      "required": false,
-      "options": {
-        "": "",
-        "gpt-4": "GPT 4",
-        "gpt-3.5-turbo": "GPT 3.5 Turbo",
-        "gpt-3.5-turbo-16k": "GPT 3.5 Turbo 16k"
-      },
-      "helpMarkDown": "The OpenAI model to use. not used if you use Azure OpenAI. if no model is selected, the GPT 3.5 Turbo model is used."
-    },
-    {
-      "name": "aoi_endpoint",
-      "type": "string",
-      "label": "Azure OpenApi Endpoint",
-      "defaultValue": "",
-      "required": false,
-      "helpMarkDown": "Azure OpenApi Endpoint, leave empty to use default endpoint. (optional)"
-    },
-    {
       "name": "support_self_signed_certificate",
       "type": "boolean",
       "label": "Support self-signed certificate",
@@ -56,12 +27,15 @@
       "helpMarkDown": "Select this option to support self-signed certificate."
     },
     {
-      "name": "aoi_instruction",
-      "type": "string",
-      "label": "Custom Prompt Instructions. It appended to the default instructions.",
-      "defaultValue": "",
+      "name": "comment_language",
+      "type": "pickList",
+      "label": "Comment Language",
       "required": false,
-      "helpMarkDown": "Custom Prompt Instructions. (optional)"
+      "options": {
+        "en": "English",
+        "ko": "Korean"
+      },
+      "helpMarkDown": "Comment Language."
     },
     {
       "name": "file_pattern",
@@ -72,15 +46,53 @@
       "helpMarkDown": "regexp string for filtering (optional)"
     },
     {
-      "name": "comment_language",
-      "type": "pickList",
-      "label": "Comment Language",
+      "name": "api_key",
+      "type": "string",
+      "label": "Api key",
+      "defaultValue": "",
       "required": true,
-      "options": {
-        "en": "English",
-        "ko": "Korean"
+      "helpMarkDown": "Api key of OpenAi or Azure OpenAI."
+    },
+    {
+      "name": "aoi_endpoint",
+      "type": "string",
+      "label": "Azure OpenApi Endpoint",
+      "defaultValue": "",
+      "required": true,
+      "helpMarkDown": "Azure OpenApi Endpoint, leave empty to use default endpoint. (optional)"
+    },
+    {
+      "name": "aoi_instruction",
+      "type": "string",
+      "label": "Custom Prompt Instructions. It appended to the default instructions.",
+      "defaultValue": "",
+      "required": false,
+      "helpMarkDown": "Custom Prompt Instructions. (optional)"
+    },
+    {
+      "name": "aoi_model_resource_id",
+      "type": "string",
+      "label": "Azure OpenAI Deployed Model Name",
+      "defaultValue": "",
+      "required": true,
+      "helpMarkDown": "Azure OpenAI Deployed Model"
+    },
+    {
+      "name": "aoi_extension_ais",
+      "type": "object",
+      "properties": {
+        "endpoint": {
+          "type": "string"
+        },
+        "indexName": {
+          "type": "string"
+        },
+        "apiKey": {
+          "type": "string"
+        }
       },
-      "helpMarkDown": "Comment Language."
+      "label": "Azure AI Search Extension",
+      "helpMarkDown": "Azure OpenAI, AI Search Extension"
     }
   ],
   "execution": {

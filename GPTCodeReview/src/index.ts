@@ -1,5 +1,4 @@
 import * as tl from "azure-pipelines-task-lib";
-import { Configuration, OpenAIApi } from "openai";
 import { deleteExistingComments } from "./pr";
 import { reviewFile } from "./review";
 import { getTargetBranchName } from "./utils";
@@ -16,33 +15,42 @@ async function run() {
       return;
     }
 
-    let openai: OpenAIApi | undefined;
+    // params
     const supportSelfSignedCertificate = tl.getBoolInput(
       "support_self_signed_certificate"
     );
-    const apiKey = tl.getInput("api_key", true);
-    const aoiEndpoint = tl.getInput("aoi_endpoint");
+    const commentLanguage = tl.getInput("comment_language", true) as
+      | "ko"
+      | "en";
+    const filePattern = tl.getInput("file_pattern");
+    const aiApiKey = tl.getInput("api_key", true);
+    const aoiEndpoint = tl.getInput("aoi_endpoint", true);
+    const aoiInstruction = tl.getInput("aoi_instruction", true);
+    const aoiModelResourceId = tl.getInput(
+      "aoi_model_resource_id",
+      true
+    ) as string;
 
-    if (apiKey == undefined) {
-      tl.setResult(tl.TaskResult.Failed, "No Api Key provided!");
-      return;
-    }
-
-    if (aoiEndpoint == undefined) {
-      const openAiConfiguration = new Configuration({
-        apiKey: apiKey,
-      });
-
-      openai = new OpenAIApi(openAiConfiguration);
-    }
+    const aoiExtensionAis = tl.getInput("aoi_extension_ais") as
+      | {
+          endpoint: string;
+          indexName: string;
+          apiKey: string;
+        }
+      | undefined;
 
     const httpsAgent = new https.Agent({
       rejectUnauthorized: !supportSelfSignedCertificate,
     });
-
     let targetBranch = getTargetBranchName();
 
-    if (!targetBranch) {
+    if (!aiApiKey) {
+      tl.setResult(tl.TaskResult.Failed, "No Api Key provided!");
+      return;
+    } else if (!aoiEndpoint) {
+      tl.setResult(tl.TaskResult.Failed, "Only support Azure AI Service.");
+      return;
+    } else if (!targetBranch) {
       tl.setResult(tl.TaskResult.Failed, "No target branch found!");
       return;
     }
@@ -54,35 +62,30 @@ async function run() {
     console.log(filesNames);
     console.log("=====================================");
 
-    const filePattern = tl.getInput("file_pattern");
     if (filePattern) {
       filesNames = filterFilesByPattern(filesNames, new RegExp(filePattern));
     }
-
     console.log("=====================================");
     console.log("Filtered Changed Files");
     console.log("=====================================");
     console.log(filesNames);
     console.log("=====================================");
 
+    // It is sequencial, it is intentional.
     await deleteExistingComments(httpsAgent);
-
-    // Check How many tokens. if tokens so over, then doesnt work.
-
-    const aoi_instruction = tl.getInput("aoi_instruction");
-    const comment_language = tl.getInput("comment_language", true) as
-      | "ko"
-      | "en";
     for (const fileName of filesNames) {
       await reviewFile({
         targetBranch,
         fileName,
         httpsAgent,
-        apiKey,
-        openai,
-        aoiEndpoint,
-        commentLanguage: comment_language,
-        customInstruction: aoi_instruction,
+        aoi: {
+          apiKey: aiApiKey,
+          aoiEndpoint,
+          aoiModelResourceId: aoiModelResourceId,
+          commentLanguage: commentLanguage,
+          customInstruction: aoiInstruction,
+          aiSearchExtension: aoiExtensionAis,
+        },
       });
     }
 

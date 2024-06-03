@@ -1,10 +1,12 @@
 import fetch from "node-fetch";
 import { git } from "./git";
-import { OpenAIApi } from "openai";
+import { OpenAI } from "openai";
 import { addCommentToPR } from "./pr";
 import { Agent } from "https";
 import * as tl from "azure-pipelines-task-lib";
 import { SimpleGit } from "simple-git";
+import { chatGPT } from "./lib/openai";
+import { ChatRequestMessageUnion } from "@azure/openai";
 
 const prompts = {
   en: `
@@ -36,69 +38,78 @@ export async function reviewFile(input: {
   targetBranch: string;
   fileName: string;
   httpsAgent: Agent;
-  apiKey: string;
-  commentLanguage: "en" | "ko";
-  openai: OpenAIApi | undefined;
-  aoiEndpoint: string | undefined;
-  customInstruction?: string;
+  aoi: {
+    apiKey: string;
+    aoiEndpoint: string;
+    aoiModelResourceId: string;
+    // Optional Params
+    aiSearchExtension?: {
+      endpoint: string;
+      indexName: string;
+      apiKey: string;
+    };
+    commentLanguage?: "en" | "ko";
+    customInstruction?: string;
+  };
   inputGit?: SimpleGit;
 }) {
   console.log(`Start reviewing ${input.fileName} ...`);
   const __git = input.inputGit || git;
 
-  const defaultOpenAIModel = "gpt-3.5-turbo";
   const patch = await __git.diff([input.targetBranch, "--", input.fileName]);
 
-  let instructions = prompts[input.commentLanguage];
+  let instructions = prompts["en"];
 
-  instructions += `${input.customInstruction}`;
-
-  // ${input.customInstruction};
-
-  console.log(input.customInstruction);
+  instructions += `${input.aoi.customInstruction}`;
 
   try {
     let choices: any;
+    const resourceId: string = input.aoi.aoiModelResourceId!;
+    const msg: ChatRequestMessageUnion[] = [
+      {
+        role: "system",
+        content: instructions,
+      },
+      {
+        role: "system",
+        content: input.aoi.customInstruction,
+      },
+      {
+        role: "user",
+        content: patch,
+      },
+    ];
 
-    if (input.openai) {
-      const response = await input.openai.createChatCompletion({
-        model: tl.getInput("model") || defaultOpenAIModel,
-        messages: [
-          {
-            role: "system",
-            content: instructions,
-          },
-          {
-            role: "user",
-            content: patch,
-          },
-        ],
-        max_tokens: 1024,
-        temperature: 0,
-      });
+    const res = await chatGPT({
+      endpoint: input.aoi.aoiEndpoint,
+      resourceModelId: resourceId,
+      apiKey: input.aoi.apiKey,
+      msg: msg,
+    });
 
-      choices = response.data.choices;
-    } else if (input.aoiEndpoint) {
-      const request = await fetch(input.aoiEndpoint, {
-        method: "POST",
-        headers: {
-          "api-key": `${input.apiKey}`,
-          "Content-Type": "application/json",
+    choices = res.choices;
+
+    if (input.aoi.commentLanguage == "ko") {
+      const msg = [
+        {
+          role: "system",
+          content:
+            "사용자로부터 입력이 들어오면, 해당 입력을 한국어로 번역 해 주세요.",
         },
-        body: JSON.stringify({
-          max_tokens: 1024,
-          temperature: 0,
-          messages: [
-            {
-              role: "user",
-              content: `${instructions}\n, patch : ${patch}}`,
-            },
-          ],
-        }),
+        {
+          role: "user",
+          content: choices[0].message?.content,
+        },
+      ];
+
+      const res = await chatGPT({
+        endpoint: input.aoi.aoiEndpoint,
+        resourceModelId: resourceId,
+        apiKey: input.aoi.apiKey,
+        msg: msg,
       });
 
-      const response = await request.json();
-      choices = response.choices;
+      choices = res.choices;
     }
 
     if (choices && choices.length > 0) {
