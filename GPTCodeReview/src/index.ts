@@ -4,6 +4,7 @@ import { reviewFile } from "./review";
 import { getTargetBranchName } from "./utils";
 import { filterFilesByPattern, getChangedFiles } from "./git";
 import https from "https";
+import { ReviewManager } from "./lib/manager";
 
 async function run() {
   try {
@@ -30,14 +31,15 @@ async function run() {
       "aoi_model_resource_id",
       true
     ) as string;
+    const aoiTokenLimit = tl.getInput("aoi_token_limit", true);
+    const gitPatchLimit = tl.getInput("git_patch_limit", true);
 
-    const aoiExtensionAis = tl.getInput("aoi_extension_ais") as
-      | {
-          endpoint: string;
-          indexName: string;
-          apiKey: string;
-        }
-      | undefined;
+    if (aoiTokenLimit) {
+      ReviewManager.reviewOptions.aoi.tokenLimit = parseInt(aoiTokenLimit);
+    }
+    if (gitPatchLimit) {
+      ReviewManager.reviewOptions.git.patchLimit = parseInt(gitPatchLimit);
+    }
 
     const httpsAgent = new https.Agent({
       rejectUnauthorized: !supportSelfSignedCertificate,
@@ -56,20 +58,10 @@ async function run() {
     }
 
     let filesNames = await getChangedFiles(targetBranch);
-    console.log("=====================================");
-    console.log("Changed Files");
-    console.log("=====================================");
-    console.log(filesNames);
-    console.log("=====================================");
 
     if (filePattern) {
       filesNames = filterFilesByPattern(filesNames, new RegExp(filePattern));
     }
-    console.log("=====================================");
-    console.log("Filtered Changed Files");
-    console.log("=====================================");
-    console.log(filesNames);
-    console.log("=====================================");
 
     // It is sequencial, it is intentional.
     await deleteExistingComments(httpsAgent);
@@ -84,12 +76,17 @@ async function run() {
           aoiModelResourceId: aoiModelResourceId,
           commentLanguage: commentLanguage,
           customInstruction: aoiInstruction,
-          aiSearchExtension: aoiExtensionAis,
         },
       });
     }
 
-    tl.setResult(tl.TaskResult.Succeeded, "Pull Request reviewed.");
+    tl.setResult(
+      tl.TaskResult.Succeeded,
+      `Pull Request reviewed. 
+    total files: ${filesNames.length}
+    total tokens: ${ReviewManager.getTotalUsage()}
+    `
+    );
   } catch (err: any) {
     tl.setResult(tl.TaskResult.Failed, err.message);
   }

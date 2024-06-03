@@ -1,5 +1,5 @@
 {
-  "id": "c89142dc-a8bb-4aae-892f-88fa79520f0b",
+  "id": "c89642dc-a8bb-4aae-892f-88fa79520f0b",
   "name": "GPTPullRequestReview",
   "friendlyName": "Review PullRequest by GPT",
   "description": "This task use OpenAi GPT model to review PullRequests",
@@ -13,7 +13,7 @@
   "version": {
     "Major": "0",
     "Minor": "0",
-    "Patch": "1"
+    "Patch": "12"
   },
   "minimumAgentVersion": "1.95.0",
   "instanceNameFormat": "GPTPullRequestReview $(message)",
@@ -78,25 +78,48 @@
       "helpMarkDown": "Azure OpenAI Deployed Model"
     },
     {
-      "name": "aoi_extension_ais",
-      "type": "object",
-      "properties": {
-        "endpoint": {
-          "type": "string"
-        },
-        "indexName": {
-          "type": "string"
-        },
-        "apiKey": {
-          "type": "string"
-        }
-      },
-      "label": "Azure AI Search Extension",
-      "helpMarkDown": "Azure OpenAI, AI Search Extension"
+      "name": "aoi_extension_ais_endpoint",
+      "type": "string",
+      "label": "Azure OpenAI Deployed Model Name",
+      "defaultValue": "",
+      "required": false,
+      "helpMarkDown": "Azure AI Search Endpoint"
+    },
+    {
+      "name": "aoi_extension_ais_indexname",
+      "type": "string",
+      "label": "Azure AI Search Index Name",
+      "defaultValue": "",
+      "required": false,
+      "helpMarkDown": "Azure AI Search Index Name"
+    },
+    {
+      "name": "aoi_extension_ais_apikey",
+      "type": "string",
+      "label": "Azure AI Search API Key",
+      "defaultValue": "",
+      "required": false,
+      "helpMarkDown": "Azure AI Search API Key"
+    },
+    {
+      "name": "aoi_token_limit",
+      "type": "number",
+      "label": "Open AI Token Limit, If over it then no review. This value is not exact, it is just a hint.",
+      "defaultValue": "",
+      "required": false,
+      "helpMarkDown": "Azure AI Search API Key"
+    },
+    {
+      "name": "git_patch_limit",
+      "type": "number",
+      "label": "Git Patch Limit, If over it then no review.",
+      "defaultValue": "",
+      "required": false,
+      "helpMarkDown": "Azure AI Search API Key"
     }
   ],
   "execution": {
-    "Node10": {
+    "Node16": {
       "target": "dist/index.js"
     }
   }

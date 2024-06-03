@@ -1,13 +1,9 @@
-import { APIKey } from "./.data/apikey";
-import { AISearch } from "./.data/params";
 import { chatGPT } from "../src/lib/openai";
-
-("llm-infra-4o");
-("llm-infra-text3l");
+import { APIEndPoint, APIKey, ResourceModelId } from "./.data/testData";
 
 (async () => {
   const result = await chatGPT({
-    resourceModelId: "llm-infra-4o",
+    resourceModelId: ResourceModelId,
     msg: [
       {
         role: "system",
@@ -15,16 +11,11 @@ import { chatGPT } from "../src/lib/openai";
       },
       {
         role: "user",
-        content: "How can use iwtk with typescript?",
+        content: "hi",
       },
     ],
     apiKey: APIKey,
-    endpoint: "....",
-    aiSearchExtension: {
-      endpoint: AISearch.endpoint,
-      apiKey: AISearch.apikey,
-      indexName: AISearch.indexName,
-    },
+    endpoint: APIEndPoint,
   });
 
   console.log(result);
