@@ -87,6 +87,14 @@ export async function reviewFile(input: {
       },
     ];
 
+    if (input.aoi.commentLanguage == "ko") {
+      msg.push({
+        role: "system",
+        content: `Translate your answer into korean. Asnwer in Korean.
+          사용자에게 답변은 한국어로 번역해주세요. 사용자에게 답변은 한국어로 해 주세요.`,
+      });
+    }
+
     /** Start AI Review */
     const res = await chatGPT({
       endpoint: input.aoi.aoiEndpoint,
@@ -100,31 +108,31 @@ export async function reviewFile(input: {
 
     choices = res.choices;
 
-    if (input.aoi.commentLanguage == "ko") {
-      const msg = [
-        {
-          role: "system",
-          content:
-            "사용자로부터 입력이 들어오면, 해당 입력을 한국어로 번역 해 주세요.",
-        },
-        {
-          role: "user",
-          content: choices[0].message?.content,
-        },
-      ];
+    // if (input.aoi.commentLanguage == "ko") {
+    //   const msg = [
+    //     {
+    //       role: "system",
+    //       content:
+    //         "사용자로부터 입력이 들어오면, 해당 입력을 한국어로 번역 해 주세요.",
+    //     },
+    //     {
+    //       role: "user",
+    //       content: choices[0].message?.content,
+    //     },
+    //   ];
 
-      const res = await chatGPT({
-        endpoint: input.aoi.aoiEndpoint,
-        resourceModelId: resourceId,
-        apiKey: input.aoi.apiKey,
-        msg: msg,
-        options: {
-          filename: `<trnslate> ${input.fileName}`,
-        },
-      });
+    //   const res = await chatGPT({
+    //     endpoint: input.aoi.aoiEndpoint,
+    //     resourceModelId: resourceId,
+    //     apiKey: input.aoi.apiKey,
+    //     msg: msg,
+    //     options: {
+    //       filename: `<trnslate> ${input.fileName}`,
+    //     },
+    //   });
 
-      choices = res.choices;
-    }
+    //   choices = res.choices;
+    // }
 
     if (choices && choices.length > 0) {
       const review = choices[0].message?.content as string;
