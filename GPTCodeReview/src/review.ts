@@ -4,7 +4,7 @@ import { addCommentToPR } from "./pr";
 import { Agent } from "https";
 import { SimpleGit } from "simple-git";
 import { chatGPT } from "./lib/openai";
-import { ChatRequestMessageUnion } from "@azure/openai";
+import { ChatMessage } from "openai";
 import { ReviewManager } from "./lib/manager";
 
 const prompts = {
@@ -73,7 +73,7 @@ export async function reviewFile(input: {
   try {
     let choices: any;
     const resourceId: string = input.aoi.aoiModelResourceId!;
-    const msg: ChatRequestMessageUnion[] = [
+    const msg: ChatMessage[] = [
       {
         role: "system",
         content: instructions,

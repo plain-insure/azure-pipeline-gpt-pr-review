@@ -74,3 +74,33 @@ When the build is triggered from a Pull Request, the task will review it. If the
 
 The tasks can execute on all supported build agent operating systems **including Linux and MacOS**.
 
+## Migration to AzureOpenAI
+
+The GPT Pull Request Review Task now uses `AzureOpenAI` from the `openai` package. This change ensures better integration with Azure services and provides enhanced features for reviewing Pull Requests.
+
+### Changes in Configuration
+
+- The `api_key` input is now required for both OpenAI and Azure OpenAI services.
+- The `aoi_endpoint` input must be provided for Azure OpenAI service.
+- The `use_managed_identity` input can be set to `true` to use Azure Managed Identity for authentication.
+
+### Example Configuration
+
+```yaml
+steps:
+- task: GPTPullRequestReview@0
+  inputs:
+    support_self_signed_certificate: false
+    comment_language: 'en'
+    file_pattern: ''
+    api_key: 'your-api-key'
+    aoi_endpoint: 'https://your-endpoint.openai.azure.com'
+    aoi_instruction: 'Custom instructions'
+    aoi_model_resource_id: 'your-model-resource-id'
+    aoi_extension_ais_endpoint: 'https://your-ais-endpoint'
+    aoi_extension_ais_indexname: 'your-index-name'
+    aoi_extension_ais_apikey: 'your-ais-api-key'
+    aoi_token_limit: 1000
+    git_patch_limit: 5000
+    use_managed_identity: false
+```

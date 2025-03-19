@@ -1,16 +1,18 @@
 import {
-  OpenAIClient,
-  AzureKeyCredential,
-  ChatRequestMessageUnion,
+  AzureOpenAI,
+  ChatCompletionCreateParamsNonStreaming,
+  ChatCompletionCreateParamsStreaming,
+  ChatCompletion,
+  ChatMessage,
   AzureChatExtensionConfigurationUnion,
-  GetChatCompletionsOptions,
-} from "@azure/openai";
+  AzureClientOptions,
+} from "openai";
 import { ReviewManager } from "./manager";
 import { DefaultAzureCredential } from "@azure/identity";
 
 interface GPTInput {
   resourceModelId: string;
-  msg: ChatRequestMessageUnion[];
+  msg: ChatMessage[];
   apiKey: string;
   useManagedIdentity?: boolean;
   endpoint: string;
@@ -32,10 +34,10 @@ export async function chatGPT(input: GPTInput) {
   const useManagedIdentity = input.useManagedIdentity || false;
 
   const openai = useManagedIdentity
-    ? new OpenAIClient(input.endpoint, new DefaultAzureCredential())
-    : new OpenAIClient(input.endpoint, new AzureKeyCredential(input.apiKey));
+    ? new AzureOpenAI(input.endpoint, new DefaultAzureCredential())
+    : new AzureOpenAI(input.endpoint, { apiKey: input.apiKey } as AzureClientOptions);
 
-  const chatOptions: GetChatCompletionsOptions = {
+  const chatOptions: ChatCompletionCreateParamsNonStreaming = {
     maxTokens: 1024,
   };
 
@@ -59,9 +61,8 @@ export async function chatGPT(input: GPTInput) {
     };
   }
 
-  result = await openai.getChatCompletions(
+  result = await openai.createChatCompletion(
     input.resourceModelId,
-    input.msg,
     chatOptions
   );
 
