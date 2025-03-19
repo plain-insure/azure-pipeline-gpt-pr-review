@@ -29,6 +29,7 @@ export async function reviewFile(input: {
     apiKey: string;
     aoiEndpoint: string;
     aoiModelResourceId: string;
+    aoiUseManagedIdentity?: boolean;
     // Optional Params
     aiSearchExtension?: {
       endpoint: string;
@@ -99,6 +100,7 @@ export async function reviewFile(input: {
     const res = await chatGPT({
       endpoint: input.aoi.aoiEndpoint,
       resourceModelId: resourceId,
+      useManagedIdentity: input.aoi.aoiUseManagedIdentity,
       apiKey: input.aoi.apiKey,
       msg: msg,
       options: {

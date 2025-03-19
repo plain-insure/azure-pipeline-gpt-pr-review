@@ -12,6 +12,7 @@ interface GPTInput {
   resourceModelId: string;
   msg: ChatRequestMessageUnion[];
   apiKey: string;
+  useManagedIdentity?: boolean;
   endpoint: string;
 
   options?: {
@@ -28,7 +29,7 @@ interface GPTInput {
 export async function chatGPT(input: GPTInput) {
   let result;
 
-  const useManagedIdentity = process.env.USE_MANAGED_IDENTITY === 'true';
+  const useManagedIdentity = input.useManagedIdentity || false;
 
   const openai = useManagedIdentity
     ? new OpenAIClient(input.endpoint, new DefaultAzureCredential())
@@ -47,7 +48,9 @@ export async function chatGPT(input: GPTInput) {
           strictness: 3,
           endpoint: input.aiSearchExtension.endpoint,
           indexName: input.aiSearchExtension.indexName,
-          authentication: {
+          authentication: useManagedIdentity ? {
+            type: "aad",
+          } : {
             type: "api_key",
             key: input.aiSearchExtension.apiKey,
           },
