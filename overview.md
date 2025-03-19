@@ -38,6 +38,20 @@ If you choose to use the Azure Open AI service, you must fill in the endpoint an
 
 In case you don't use Azure Open AI Service, you can choose which model to use, the supported models are "gpt-4", "gpt-3.5-turbo" and "gpt-3.5-turbo-16k". if no model is selected the "gpt-3.5-turbo" is used.
 
+### Using Managed Identity
+
+To use Azure Managed Identity for authentication, you need to enable the `use_managed_identity` option in the task settings. This can be done by setting the `use_managed_identity` input to `true` in your pipeline configuration.
+
+Example:
+
+```yaml
+steps:
+- task: GPTPullRequestReview@0
+  inputs:
+    use_managed_identity: true
+    # other inputs...
+```
+
 ## How to use it
 
 ### Install the extension

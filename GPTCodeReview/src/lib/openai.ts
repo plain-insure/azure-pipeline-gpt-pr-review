@@ -6,6 +6,7 @@ import {
   GetChatCompletionsOptions,
 } from "@azure/openai";
 import { ReviewManager } from "./manager";
+import { DefaultAzureCredential } from "@azure/identity";
 
 interface GPTInput {
   resourceModelId: string;
@@ -27,10 +28,11 @@ interface GPTInput {
 export async function chatGPT(input: GPTInput) {
   let result;
 
-  const openai = new OpenAIClient(
-    input.endpoint,
-    new AzureKeyCredential(input.apiKey)
-  );
+  const useManagedIdentity = process.env.USE_MANAGED_IDENTITY === 'true';
+
+  const openai = useManagedIdentity
+    ? new OpenAIClient(input.endpoint, new DefaultAzureCredential())
+    : new OpenAIClient(input.endpoint, new AzureKeyCredential(input.apiKey));
 
   const chatOptions: GetChatCompletionsOptions = {
     maxTokens: 1024,
