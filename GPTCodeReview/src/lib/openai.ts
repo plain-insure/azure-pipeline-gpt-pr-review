@@ -1,15 +1,11 @@
-import {
-  OpenAIClient,
-  AzureKeyCredential,
-  ChatRequestMessageUnion,
-  AzureChatExtensionConfigurationUnion,
-  GetChatCompletionsOptions,
-} from "@azure/openai";
 import { ReviewManager } from "./manager";
+import OpenAI, { AzureOpenAI } from "openai";
+import { ChatCompletionMessageParam, ChatCompletionCreateParamsNonStreaming, ChatCompletionStoreMessagesPage } from "openai/resources";
+import { types } from "util";
 
 interface GPTInput {
   resourceModelId: string;
-  msg: ChatRequestMessageUnion[];
+  message: ChatCompletionMessageParam[];
   apiKey: string;
   endpoint: string;
 
@@ -27,20 +23,24 @@ interface GPTInput {
 export async function chatGPT(input: GPTInput) {
   let result;
 
-  const openai = new OpenAIClient(
-    input.endpoint,
-    new AzureKeyCredential(input.apiKey)
-  );
+  const deployment = "gpt-4o";
+  const apiVersion = "2025-01-01-preview";
+  const apiKey = "foo";
+  const endpoint = "https://plain.openai.azure.com/";
 
-  const chatOptions: GetChatCompletionsOptions = {
-    maxTokens: 1024,
+  const options = { deployment, apiVersion, apiKey, endpoint };
+  const client = new AzureOpenAI(options);
+
+  const chatOptions: ChatCompletionCreateParamsNonStreaming = {
+    max_tokens: 1024,
+    model: "chatgpt-4o-latest",
+    messages: input.message
   };
 
   if (input.aiSearchExtension) {
-    chatOptions["azureExtensionOptions"] = {
-      extensions: [
-        {
+        data_sources:[{
           type: "azure_search",
+          parameters: {
           topNDocuments: 20,
           strictness: 3,
           endpoint: input.aiSearchExtension.endpoint,
@@ -49,28 +49,29 @@ export async function chatGPT(input: GPTInput) {
             type: "api_key",
             key: input.aiSearchExtension.apiKey,
           },
-        },
-      ],
+        }
+      }]
     };
-  }
+  
 
-  result = await openai.getChatCompletions(
-    input.resourceModelId,
-    input.msg,
-    chatOptions
-  );
+  result = await client.chat.completions.create(chatOptions);
 
-  if (input.options?.filename) {
-    ReviewManager.info.usages.push({
-      filename: input.options.filename,
-      usages: result.usage,
-    });
-  } else {
-    ReviewManager.info.usages.push({
-      filename: "<<Undefined Filename>>",
-      usages: result.usage,
-    });
-  }
+
+
+
+  const usageData = result.usage
+  ? {
+      completionTokens: result.usage.completion_tokens,
+      promptTokens: result.usage.prompt_tokens,
+      totalTokens: result.usage.total_tokens,
+    }
+  : undefined;
+
+ReviewManager.info.usages.push({
+  filename: input.options?.filename || "<<Undefined Filename>>",
+  usages: usageData,
+});
+  
 
   return result;
 }

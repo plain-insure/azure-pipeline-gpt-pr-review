@@ -39,7 +39,7 @@ const outputDir = argv.outputDir;
     fileName: changedFiles[0],
     httpsAgent,
     aoi: {
-      aoiModelResourceId: "llm-infra-4o",
+      aoiModelResourceId: "gpt-4o",
       apiKey: inputOaiAPIKey,
       aoiEndpoint: inputOaiEndPoint,
       commentLanguage: "ko",

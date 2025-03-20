@@ -4,8 +4,10 @@ import { addCommentToPR } from "./pr";
 import { Agent } from "https";
 import { SimpleGit } from "simple-git";
 import { chatGPT } from "./lib/openai";
-import { ChatRequestMessageUnion } from "@azure/openai";
 import { ReviewManager } from "./lib/manager";
+import { DefaultAzureCredential, getBearerTokenProvider } from "@azure/identity";
+import {AzureOpenAI} from "openai";
+import { ChatCompletion, ChatCompletionMessageParam } from "openai/resources";
 
 const prompts = {
   en: `
@@ -72,14 +74,10 @@ export async function reviewFile(input: {
   try {
     let choices: any;
     const resourceId: string = input.aoi.aoiModelResourceId!;
-    const msg: ChatRequestMessageUnion[] = [
+    const msg: ChatCompletionMessageParam[] = [
       {
         role: "system",
         content: instructions,
-      },
-      {
-        role: "system",
-        content: input.aoi.customInstruction,
       },
       {
         role: "user",
@@ -100,7 +98,7 @@ export async function reviewFile(input: {
       endpoint: input.aoi.aoiEndpoint,
       resourceModelId: resourceId,
       apiKey: input.aoi.apiKey,
-      msg: msg,
+      message: msg,
       options: {
         filename: `${input.fileName}`,
       },
