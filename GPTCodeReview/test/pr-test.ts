@@ -42,9 +42,9 @@ const outputDir = argv.outputDir;
       aoiModelResourceId: "gpt-4o",
       apiKey: inputOaiAPIKey,
       aoiEndpoint: inputOaiEndPoint,
-      commentLanguage: "ko",
+      commentLanguage: "en",
       customInstruction: `
-      이 프로젝트는 CPP 프로젝트입니다.
+      This project is a CPP project.
       https://google.github.io/styleguide/
       해당 주소의, Google C++ Style Guide를 참고하여 리뷰해주세요.
       `,
