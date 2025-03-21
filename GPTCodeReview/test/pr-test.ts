@@ -46,7 +46,8 @@ const outputDir = argv.outputDir;
       customInstruction: `
       This project is a CPP project.
       https://google.github.io/styleguide/
-      해당 주소의, Google C++ Style Guide를 참고하여 리뷰해주세요.
+      Please review with reference to the Google C++ Style Guide at that address.
+      "Please correct this line in the pr review"
       `,
     },
     inputGit: git,

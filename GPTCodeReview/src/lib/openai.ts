@@ -1,7 +1,8 @@
 import { ReviewManager } from "./manager";
-import OpenAI, { AzureOpenAI } from "openai";
+import { AzureOpenAI } from "openai";
 import { ChatCompletionMessageParam, ChatCompletionCreateParamsNonStreaming, ChatCompletionStoreMessagesPage } from "openai/resources";
-import { types } from "util";
+import { DefaultAzureCredential, getBearerTokenProvider } from "@azure/identity";
+
 
 interface GPTInput {
   resourceModelId: string;
@@ -25,10 +26,12 @@ export async function chatGPT(input: GPTInput) {
 
   const deployment = "gpt-4o";
   const apiVersion = "2025-01-01-preview";
-  const apiKey = "foo";
   const endpoint = "https://plain.openai.azure.com/";
+  const credential = new DefaultAzureCredential();
+  const scope = "https://cognitiveservices.azure.com/.default";
+  const azureADTokenProvider = getBearerTokenProvider(credential, scope);
 
-  const options = { deployment, apiVersion, apiKey, endpoint };
+  const options = { deployment, apiVersion, azureADTokenProvider, endpoint };
   const client = new AzureOpenAI(options);
 
   const chatOptions: ChatCompletionCreateParamsNonStreaming = {
