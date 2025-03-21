@@ -13,7 +13,7 @@ const apiVersion = "2025-01-01-preview";
 const apiKey = "foo";
 const endpoint = "https://plain.openai.azure.com/";
 
-const options = { deployment, apiVersion, apiKey, endpoint };
+const options = { deployment, apiVersion, endpoint };
 const client = new AzureOpenAI(options);
 
 
