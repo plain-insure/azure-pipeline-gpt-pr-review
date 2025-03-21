@@ -11,7 +11,6 @@ const argv = yargs(process.argv.slice(2))
   .option("sourceBranch", { type: "string", demandOption: true })
   .option("targetBranch", { type: "string", demandOption: true })
   .option("oaiEndPoint", { type: "string", demandOption: true })
-  .option("oaiAPIKey", { type: "string", demandOption: true })
   .option("outputDir", { type: "string", demandOption: true })
   .parseSync();
 
@@ -19,7 +18,6 @@ const inputRepoDir = argv.repoDir;
 const inputSourceBranch = argv.sourceBranch;
 const inputTargetBranch = argv.targetBranch;
 const inputOaiEndPoint = argv.oaiEndPoint;
-const inputOaiAPIKey = argv.oaiAPIKey;
 const outputDir = argv.outputDir;
 
 (async () => {
@@ -40,7 +38,6 @@ const outputDir = argv.outputDir;
     httpsAgent,
     aoi: {
       aoiModelResourceId: "gpt-4o",
-      apiKey: inputOaiAPIKey,
       aoiEndpoint: inputOaiEndPoint,
       commentLanguage: "en",
       customInstruction: `

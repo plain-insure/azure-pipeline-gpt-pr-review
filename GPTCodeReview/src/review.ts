@@ -28,14 +28,12 @@ export async function reviewFile(input: {
   fileName: string;
   httpsAgent: Agent;
   aoi: {
-    apiKey: string;
     aoiEndpoint: string;
     aoiModelResourceId: string;
     // Optional Params
     aiSearchExtension?: {
       endpoint: string;
       indexName: string;
-      apiKey: string;
     };
     commentLanguage?: "en" | "ko";
     customInstruction?: string;
@@ -97,7 +95,6 @@ export async function reviewFile(input: {
     const res = await chatGPT({
       endpoint: input.aoi.aoiEndpoint,
       resourceModelId: resourceId,
-      apiKey: input.aoi.apiKey,
       message: msg,
       options: {
         filename: `${input.fileName}`,

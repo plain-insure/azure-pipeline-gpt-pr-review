@@ -7,7 +7,6 @@ import { DefaultAzureCredential, getBearerTokenProvider } from "@azure/identity"
 interface GPTInput {
   resourceModelId: string;
   message: ChatCompletionMessageParam[];
-  apiKey: string;
   endpoint: string;
 
   options?: {
@@ -17,7 +16,6 @@ interface GPTInput {
   aiSearchExtension?: {
     endpoint: string;
     indexName: string;
-    apiKey: string;
   };
 }
 
@@ -50,7 +48,6 @@ export async function chatGPT(input: GPTInput) {
           indexName: input.aiSearchExtension.indexName,
           authentication: {
             type: "api_key",
-            key: input.aiSearchExtension.apiKey,
           },
         }
       }]
