@@ -86,7 +86,7 @@ export async function reviewFile(input: {
     if (input.aoi.commentLanguage == "ko") {
       msg.push({
         role: "system",
-        content: `Translate your answer into korean. Asnwer in Korean.
+        content: `Translate your answer into korean. Answer in Korean.
           사용자에게 답변은 한국어로 번역해주세요. 사용자에게 답변은 한국어로 해 주세요.`,
       });
     }
