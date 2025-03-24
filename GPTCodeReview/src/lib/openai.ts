@@ -1,13 +1,16 @@
 import { ReviewManager } from "./manager";
 import { AzureOpenAI } from "openai";
-import { ChatCompletionMessageParam, ChatCompletionCreateParamsNonStreaming, ChatCompletionStoreMessagesPage } from "openai/resources";
-import { DefaultAzureCredential, getBearerTokenProvider } from "@azure/identity";
+import { ChatCompletionMessageParam, ChatCompletionCreateParamsNonStreaming } from "openai/resources";
+import { DefaultAzureCredential, getBearerTokenProvider,  } from "@azure/identity";
+
 
 
 interface GPTInput {
   resourceModelId: string;
   message: ChatCompletionMessageParam[];
   endpoint: string;
+  apiKey: string;
+  useManagedIdentity?: boolean;
 
   options?: {
     filename?: string;
@@ -16,6 +19,7 @@ interface GPTInput {
   aiSearchExtension?: {
     endpoint: string;
     indexName: string;
+    apiKey: string;
   };
 }
 
@@ -24,13 +28,21 @@ export async function chatGPT(input: GPTInput) {
 
   const deployment = "gpt-4o";
   const apiVersion = "2025-01-01-preview";
-  const endpoint = "https://plain.openai.azure.com/";
+  const endpoint = input.endpoint;
   const credential = new DefaultAzureCredential();
   const scope = "https://cognitiveservices.azure.com/.default";
+
+  const apiKey = input.apiKey;
   const azureADTokenProvider = getBearerTokenProvider(credential, scope);
 
-  const options = { deployment, apiVersion, azureADTokenProvider, endpoint };
-  const client = new AzureOpenAI(options);
+  const useManagedIdentity = input.useManagedIdentity || false;
+
+  const optionsWithKey = { deployment, apiVersion, endpoint, apiKey };
+  const optionsWithIdentity = {deployment, apiVersion, endpoint, azureADTokenProvider}
+
+  const client = useManagedIdentity?
+  new AzureOpenAI(optionsWithIdentity) : new AzureOpenAI(optionsWithKey);
+  
 
   const chatOptions: ChatCompletionCreateParamsNonStreaming = {
     max_tokens: 1024,
@@ -46,9 +58,12 @@ export async function chatGPT(input: GPTInput) {
           strictness: 3,
           endpoint: input.aiSearchExtension.endpoint,
           indexName: input.aiSearchExtension.indexName,
-          authentication: {
+          authentication: useManagedIdentity ?{
+            type: "aad",
+          } : {
             type: "api_key",
-          },
+            key: input.aiSearchExtension.apiKey,
+          }
         }
       }]
     };

@@ -33,6 +33,7 @@ async function run() {
     ) as string;
     const aoiTokenLimit = tl.getInput("aoi_token_limit", true);
     const gitPatchLimit = tl.getInput("git_patch_limit", true);
+    const useManagedIdentity = tl.getBoolInput("use_managed_indeity");
 
     if (aoiTokenLimit) {
       ReviewManager.reviewOptions.aoi.tokenLimit = parseInt(aoiTokenLimit);
@@ -46,7 +47,7 @@ async function run() {
     });
     let targetBranch = getTargetBranchName();
 
-    if (!aiApiKey) {
+    if (!aiApiKey || !useManagedIdentity) {
       tl.setResult(tl.TaskResult.Failed, "No Api Key provided!");
       return;
     } else if (!aoiEndpoint) {
@@ -72,6 +73,7 @@ async function run() {
         httpsAgent,
         aoi: {
           apiKey: aiApiKey,
+          aoiUseManagedIdentity: useManagedIdentity,
           aoiEndpoint,
           aoiModelResourceId: aoiModelResourceId,
           commentLanguage: commentLanguage,

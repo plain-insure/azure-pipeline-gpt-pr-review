@@ -14,7 +14,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@azure/identity": "^4.2.0",
+    "@azure/identity": "^4.8.0",
+    "@azure/openai": "^2.0.0",
     "@azure/storage-blob": "^12.18.0",
     "azure-pipelines-task-lib": "^4.3.1",
     "binary-extensions": "^2.2.0",

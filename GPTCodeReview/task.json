@@ -116,6 +116,14 @@
       "defaultValue": "",
       "required": false,
       "helpMarkDown": "Azure AI Search API Key"
+    },
+    {
+      "name": "use_managed_identity",
+      "type": "boolean",
+      "label": "Use Managed Identity",
+      "defaultValue": "false",
+      "required": false,
+      "helpMarkDown": "Select this option to use Azure Managed Identity for authentication."
     }
   ],
   "execution": {

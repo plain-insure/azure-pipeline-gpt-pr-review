@@ -1,13 +1,10 @@
-import fetch from "node-fetch";
 import { git } from "./git";
 import { addCommentToPR } from "./pr";
 import { Agent } from "https";
 import { SimpleGit } from "simple-git";
 import { chatGPT } from "./lib/openai";
 import { ReviewManager } from "./lib/manager";
-import { DefaultAzureCredential, getBearerTokenProvider } from "@azure/identity";
-import {AzureOpenAI} from "openai";
-import { ChatCompletion, ChatCompletionMessageParam } from "openai/resources";
+import { ChatCompletionMessageParam } from "openai/resources";
 
 const prompts = {
   en: `
@@ -28,12 +25,15 @@ export async function reviewFile(input: {
   fileName: string;
   httpsAgent: Agent;
   aoi: {
+    apiKey: string;
     aoiEndpoint: string;
     aoiModelResourceId: string;
+    aoiUseManagedIdentity?: boolean;
     // Optional Params
     aiSearchExtension?: {
       endpoint: string;
       indexName: string;
+      apiKey: string;
     };
     commentLanguage?: "en" | "ko";
     customInstruction?: string;
@@ -94,7 +94,9 @@ export async function reviewFile(input: {
     /** Start AI Review */
     const res = await chatGPT({
       endpoint: input.aoi.aoiEndpoint,
+      apiKey: input.aoi.apiKey,
       resourceModelId: resourceId,
+      useManagedIdentity: input.aoi.aoiUseManagedIdentity,
       message: msg,
       options: {
         filename: `${input.fileName}`,
