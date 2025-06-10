@@ -43,16 +43,6 @@
     },
     "contributions": [
         {
-            "id": "OAICodeReview",
-            "type": "ms.vss-distributed-task.task",
-            "targets": [
-                "ms.vss-distributed-task.tasks"
-            ],
-            "properties": {
-                "name": "OAICodeReview"
-            }
-        },
-        {
             "id": "GPTCodeReview",
             "type": "ms.vss-distributed-task.task",
             "targets": [
