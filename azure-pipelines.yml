@@ -1,0 +1,99 @@
+# Azure Pipeline for automated deployment of GPT PR Review extension
+# This pipeline builds the extension and packages it for Azure Marketplace
+
+trigger:
+  tags:
+    include:
+    - v*
+  branches:
+    include:
+    - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  majorVersion: '0'
+  minorVersion: '0'
+  patchVersion: $[counter(variables['Build.SourceBranchName'], 13)]
+  extensionVersion: '$(majorVersion).$(minorVersion).$(patchVersion)'
+
+stages:
+- stage: Build
+  displayName: 'Build and Package Extension'
+  jobs:
+  - job: BuildExtension
+    displayName: 'Build Extension'
+    steps:
+    - checkout: self
+      persistCredentials: true
+
+    - task: NodeTool@0
+      displayName: 'Install Node.js'
+      inputs:
+        versionSpec: '16.x'
+
+    - script: |
+        cd GPTCodeReview
+        npm install
+      displayName: 'Install dependencies'
+
+    - script: |
+        cd GPTCodeReview
+        npm run build
+      displayName: 'Build TypeScript'
+
+    - script: |
+        npm install -g tfx-cli
+      displayName: 'Install TFX CLI'
+
+    - script: |
+        # Update version in vss-extension.json
+        sed -i 's/"version": "[^"]*"/"version": "$(extensionVersion)"/' vss-extension.json
+        
+        # Update version in task.json
+        sed -i 's/"Major": "[^"]*"/"Major": "$(majorVersion)"/' GPTCodeReview/task.json
+        sed -i 's/"Minor": "[^"]*"/"Minor": "$(minorVersion)"/' GPTCodeReview/task.json
+        sed -i 's/"Patch": "[^"]*"/"Patch": "$(patchVersion)"/' GPTCodeReview/task.json
+      displayName: 'Update version numbers'
+
+    - script: |
+        tfx extension create --manifest-globs vss-extension.json --output-path $(Build.ArtifactStagingDirectory)
+      displayName: 'Package extension'
+
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish extension artifact'
+      inputs:
+        pathToPublish: '$(Build.ArtifactStagingDirectory)'
+        artifactName: 'extension'
+
+- stage: Deploy
+  displayName: 'Deploy to Azure Marketplace'
+  dependsOn: Build
+  condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
+  jobs:
+  - deployment: DeployExtension
+    displayName: 'Deploy Extension'
+    environment: 'production'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: current
+            artifact: extension
+
+          - script: |
+              npm install -g tfx-cli
+            displayName: 'Install TFX CLI'
+
+          - script: |
+              echo "Extension package created: $(Pipeline.Workspace)/extension/*.vsix"
+              ls -la $(Pipeline.Workspace)/extension/
+            displayName: 'List extension files'
+
+          # Uncomment and configure the following task when ready to publish
+          # - script: |
+          #     tfx extension publish --vsix $(Pipeline.Workspace)/extension/*.vsix --auth-type pat --token $(MARKETPLACE_TOKEN)
+          #   displayName: 'Publish to Azure Marketplace'
+          #   env:
+          #     MARKETPLACE_TOKEN: $(MARKETPLACE_TOKEN)

@@ -44,6 +44,28 @@ If you choose to use the Azure Open AI service, you must fill in the endpoint an
 
 In case you don't use Azure Open AI Service, you can choose which model to use, the supported models are "gpt-4", "gpt-3.5-turbo" and "gpt-3.5-turbo-16k". if no model is selected the "gpt-3.5-turbo" is used.
 
+## Deployment
+
+This extension includes an automated deployment pipeline that builds and packages the extension for Azure Marketplace.
+
+### For Developers
+
+To build the extension locally:
+```bash
+./build.sh
+```
+
+### For Releases
+
+To create a new release:
+```bash
+./release.sh 1.0.0
+```
+
+This will create a git tag and trigger the automated deployment pipeline.
+
+For more details, see [DEPLOYMENT.md](DEPLOYMENT.md).
+
 ## Contributions
 
 Found and fixed a bug or improved on something? Contributions are welcome! Please target your pull request against the `main` branch or report an issue on [GitHub](https://github.com/mlarhrouch/azure-pipeline-gpt-pr-review/issues) so someone else can try and implement or fix it.

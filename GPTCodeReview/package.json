@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc -p .",
+    "package": "npm run build && tfx extension create --manifest-globs ../vss-extension.json",
     "test-pr": "NODE_ENV=test ts-node ./test/pr-test.ts",
     "test-chat": "NODE_ENV=test ts-node ./test/chat-test.ts",
     "test-store": "NODE_ENV=test ts-node ./test/store-test.ts",
