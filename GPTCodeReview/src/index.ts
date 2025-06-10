@@ -20,7 +20,7 @@ async function run() {
     const supportSelfSignedCertificate = tl.getBoolInput(
       "support_self_signed_certificate"
     );
-    const commentLanguage = tl.getInput("comment_language", true) as
+    const commentLanguage = tl.getInput("comment_language", false) || "en" as
         | "aa" | "ab" | "ae" | "af" | "ak" | "am" | "an" | "ar" | "as" | "av"
         | "ay" | "az" | "ba" | "be" | "bg" | "bh" | "bi" | "bm" | "bn" | "bo"
         | "br" | "bs" | "ca" | "ce" | "ch" | "co" | "cr" | "cs" | "cu" | "cv"
