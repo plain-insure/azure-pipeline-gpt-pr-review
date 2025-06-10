@@ -20,7 +20,7 @@ async function run() {
     const supportSelfSignedCertificate = tl.getBoolInput(
       "support_self_signed_certificate"
     );
-    const commentLanguage = tl.getInput("comment_language", false) || "en" as
+    const commentLanguage = (tl.getInput("comment_language", false) || "en") as
         | "aa" | "ab" | "ae" | "af" | "ak" | "am" | "an" | "ar" | "as" | "av"
         | "ay" | "az" | "ba" | "be" | "bg" | "bh" | "bi" | "bm" | "bn" | "bo"
         | "br" | "bs" | "ca" | "ce" | "ch" | "co" | "cr" | "cs" | "cu" | "cv"
@@ -43,15 +43,15 @@ async function run() {
     const filePattern = tl.getInput("file_pattern");
     const aiApiKey = tl.getInput("api_key", false);
     const useManagedIdentity = tl.getBoolInput("use_managed_identity");
-    const modelName = tl.getInput("model_name", true);
+    const modelName = tl.getInput("model_name", false) || "gpt-4o";
     const aoiEndpoint = tl.getInput("aoi_endpoint", true);
-    const aoiInstruction = tl.getInput("aoi_instruction", true);
+    const aoiInstruction = tl.getInput("aoi_instruction", false);
     const aoiModelResourceId = tl.getInput(
       "aoi_model_resource_id",
       true
     ) as string;
-    const aoiTokenLimit = tl.getInput("aoi_token_limit", true);
-    const gitPatchLimit = tl.getInput("git_patch_limit", true);
+    const aoiTokenLimit = tl.getInput("aoi_token_limit", false);
+    const gitPatchLimit = tl.getInput("git_patch_limit", false);
 
     if (aoiTokenLimit) {
       ReviewManager.reviewOptions.aoi.tokenLimit = parseInt(aoiTokenLimit);
