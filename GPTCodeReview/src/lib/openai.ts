@@ -10,6 +10,7 @@ interface GPTInput {
   message: ChatCompletionMessageParam[];
   endpoint: string;
   apiKey: string;
+  modelName?: string;
   useManagedIdentity?: boolean;
 
   options?: {
@@ -46,7 +47,7 @@ export async function chatGPT(input: GPTInput) {
 
   const chatOptions: ChatCompletionCreateParamsNonStreaming = {
     max_tokens: 1024,
-    model: "chatgpt-4o-latest",
+    model: input.modelName || "gpt-4o",
     messages: input.message
   };
 

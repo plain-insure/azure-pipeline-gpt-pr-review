@@ -28,6 +28,7 @@ export async function reviewFile(input: {
     apiKey: string;
     aoiEndpoint: string;
     aoiModelResourceId: string;
+    aoiModelName?: string;
     aoiUseManagedIdentity?: boolean;
     // Optional Params
     aiSearchExtension?: {
@@ -35,7 +36,25 @@ export async function reviewFile(input: {
       indexName: string;
       apiKey: string;
     };
-    commentLanguage?: "en" | "ko";
+    commentLanguage?: "aa" | "ab" | "ae" | "af" | "ak" | "am" | "an" | "ar" | "as" | "av"
+        | "ay" | "az" | "ba" | "be" | "bg" | "bh" | "bi" | "bm" | "bn" | "bo"
+        | "br" | "bs" | "ca" | "ce" | "ch" | "co" | "cr" | "cs" | "cu" | "cv"
+        | "cy" | "da" | "de" | "dv" | "dz" | "ee" | "el" | "en" | "eo" | "es"
+        | "et" | "eu" | "fa" | "ff" | "fi" | "fj" | "fo" | "fr" | "fy" | "ga"
+        | "gd" | "gl" | "gn" | "gu" | "gv" | "ha" | "he" | "hi" | "ho" | "hr"
+        | "ht" | "hu" | "hy" | "hz" | "ia" | "id" | "ie" | "ig" | "ii" | "ik"
+        | "io" | "is" | "it" | "iu" | "ja" | "jv" | "ka" | "kg" | "ki" | "kj"
+        | "kk" | "kl" | "km" | "kn" | "ko" | "kr" | "ks" | "ku" | "kv" | "kw"
+        | "ky" | "la" | "lb" | "lg" | "li" | "ln" | "lo" | "lt" | "lu" | "lv"
+        | "mg" | "mh" | "mi" | "mk" | "ml" | "mn" | "mr" | "ms" | "mt" | "my"
+        | "na" | "nb" | "nd" | "ne" | "ng" | "nl" | "nn" | "no" | "nr" | "nv"
+        | "ny" | "oc" | "oj" | "om" | "or" | "os" | "pa" | "pi" | "pl" | "ps"
+        | "pt" | "qu" | "rm" | "rn" | "ro" | "ru" | "rw" | "sa" | "sc" | "sd"
+        | "se" | "sg" | "si" | "sk" | "sl" | "sm" | "sn" | "so" | "sq" | "sr"
+        | "ss" | "st" | "su" | "sv" | "sw" | "ta" | "te" | "tg" | "th" | "ti"
+        | "tk" | "tl" | "tn" | "to" | "tr" | "ts" | "tt" | "tw" | "ty" | "ug"
+        | "uk" | "ur" | "uz" | "ve" | "vi" | "vo" | "wa" | "wo" | "xh" | "yi"
+        | "yo" | "za" | "zh" | "zu";
     customInstruction?: string;
   };
   inputGit?: SimpleGit;
@@ -75,7 +94,7 @@ export async function reviewFile(input: {
     const msg: ChatCompletionMessageParam[] = [
       {
         role: "system",
-        content: instructions,
+        content: input.aoi.customInstruction || instructions,
       },
       {
         role: "user",
@@ -83,11 +102,10 @@ export async function reviewFile(input: {
       },
     ];
 
-    if (input.aoi.commentLanguage == "ko") {
+    if (input.aoi.commentLanguage && input.aoi.commentLanguage != "en") {
       msg.push({
         role: "system",
-        content: `Translate your answer into korean. Answer in Korean.
-          사용자에게 답변은 한국어로 번역해주세요. 사용자에게 답변은 한국어로 해 주세요.`,
+        content: `Translate your answer into ${input.aoi.commentLanguage}. Answer in ${input.aoi.commentLanguage}.`,
       });
     }
 
@@ -96,6 +114,7 @@ export async function reviewFile(input: {
       endpoint: input.aoi.aoiEndpoint,
       apiKey: input.aoi.apiKey,
       resourceModelId: resourceId,
+      modelName: input.aoi.aoiModelName,
       useManagedIdentity: input.aoi.aoiUseManagedIdentity,
       message: msg,
       options: {
@@ -104,32 +123,6 @@ export async function reviewFile(input: {
     });
 
     choices = res.choices;
-
-    // if (input.aoi.commentLanguage == "ko") {
-    //   const msg = [
-    //     {
-    //       role: "system",
-    //       content:
-    //         "사용자로부터 입력이 들어오면, 해당 입력을 한국어로 번역 해 주세요.",
-    //     },
-    //     {
-    //       role: "user",
-    //       content: choices[0].message?.content,
-    //     },
-    //   ];
-
-    //   const res = await chatGPT({
-    //     endpoint: input.aoi.aoiEndpoint,
-    //     resourceModelId: resourceId,
-    //     apiKey: input.aoi.apiKey,
-    //     msg: msg,
-    //     options: {
-    //       filename: `<trnslate> ${input.fileName}`,
-    //     },
-    //   });
-
-    //   choices = res.choices;
-    // }
 
     if (choices && choices.length > 0) {
       const review = choices[0].message?.content as string;

@@ -1,9 +1,6 @@
 import { DefaultAzureCredential, getBearerTokenProvider } from "@azure/identity";
 import {AzureOpenAI} from "openai";
 
-
-
-
 const credential = new DefaultAzureCredential();
 const scope = "https://cognitiveservices.azure.com/.default";
 const azureADTokenProvider = getBearerTokenProvider(credential, scope);
@@ -11,9 +8,9 @@ const azureADTokenProvider = getBearerTokenProvider(credential, scope);
 const deployment = "gpt-4o";
 const apiVersion = "2025-01-01-preview";
 const apiKey = "foo";
-const endpoint = "https://plain.openai.azure.com/";
+const endpoint = process.env.AOI_ENDPOINT || "https://[your-custom-endpoint].openai.azure.com/";
 
-const options = { deployment, apiVersion, endpoint };
+const options = { deployment, apiVersion, endpoint, azureADTokenProvider };
 const client = new AzureOpenAI(options);
 
 
