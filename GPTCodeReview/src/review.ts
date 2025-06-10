@@ -25,7 +25,7 @@ export async function reviewFile(input: {
   fileName: string;
   httpsAgent: Agent;
   aoi: {
-    apiKey: string;
+    apiKey?: string;
     aoiEndpoint: string;
     aoiModelResourceId: string;
     aoiModelName?: string;
