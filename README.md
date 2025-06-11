@@ -42,7 +42,7 @@ Enable the option "Allow scripts to access the OAuth token" in the "Agent job" p
 ### Azure OpenAI Service
 
 
-If you choose to use the Azure OpenAI service, you must provide both the endpoint and an authentication method. There are two supported authentication methods:
+If you choose to use the Azure OpenAI service, you must provide both the endpoint and an authentication method. There are three supported authentication methods:
 
 1. **API Key Authentication**
    - This is the standard method for most hosted agents.
@@ -55,12 +55,19 @@ If you choose to use the Azure OpenAI service, you must provide both the endpoin
    - When using managed identity, you do **not** need to provide an API key. The extension will use the managed identity of the build agent to authenticate securely.
    - **Note:** Managed identity authentication is not available on Microsoft-hosted agents. You must use a self-hosted agent that is provisioned with a managed identity and has network access to the Azure OpenAI resource.
 
+3. **Service Connection Authentication**
+   - This method uses an Azure Resource Manager service connection configured in your Azure DevOps project.
+   - The service connection must contain a service principal with appropriate permissions to access the Azure OpenAI resource.
+   - This is similar to how the AzureCLI task authenticates with Azure services.
+   - Works with both hosted and self-hosted agents.
+
 **Summary Table:**
 
 | Authentication Method | Agent Type         | Requirements                                                                                 |
 |----------------------|--------------------|---------------------------------------------------------------------------------------------|
 | API Key              | Any                | API key for Azure OpenAI resource                                                           |
 | Managed Identity     | Self-hosted (Azure)| Agent must have managed identity with access to Azure OpenAI; not supported on hosted agents |
+| Service Connection   | Any                | Azure Resource Manager service connection with service principal access to Azure OpenAI     |
 
 For more information on configuring managed identity, see the [Microsoft Docs: Use managed identity to authenticate to Azure OpenAI](https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/managed-identity).
 
@@ -88,6 +95,27 @@ Example pipeline variable:
 ```
 
 See [Microsoft Docs: Use managed identity to authenticate to Azure OpenAI](https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/managed-identity) for more details.
+
+#### Using Service Connection
+
+To use Service Connection authentication, specify the `azure_subscription` parameter with the name of your Azure Resource Manager service connection. The service connection must be configured with a service principal that has appropriate access to the Azure OpenAI resource.
+
+Example pipeline with service connection:
+
+```yaml
+- task: GPTCodeReview@0
+  inputs:
+    azure_subscription: 'My Azure Connection'
+    aoi_endpoint: https://{RESOURCE_NAME}.openai.azure.com/
+    aoi_model_resource_id: {MODEL_NAME}
+    # other options ...
+```
+
+**Setting up Service Connection:**
+1. In your Azure DevOps project, go to Project Settings > Service connections
+2. Create a new Azure Resource Manager service connection
+3. Configure it with a service principal that has "Cognitive Services User" role on your Azure OpenAI resource
+4. Use the service connection name in the `azure_subscription` parameter
 
 ### OpenAI Models
 

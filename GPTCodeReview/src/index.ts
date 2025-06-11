@@ -43,6 +43,7 @@ async function run() {
     const filePattern = tl.getInput("file_pattern");
     const aiApiKey = tl.getInput("api_key", false);
     const useManagedIdentity = tl.getBoolInput("use_managed_identity");
+    const azureSubscription = tl.getInput("azure_subscription", false);
     const modelName = tl.getInput("model_name", false) || "gpt-4o";
     const aoiEndpoint = tl.getInput("aoi_endpoint", true);
     const aoiInstruction = tl.getInput("aoi_instruction", false);
@@ -65,8 +66,8 @@ async function run() {
     });
     let targetBranch = getTargetBranchName();
 
-    if (!aiApiKey || !useManagedIdentity) {
-      tl.setResult(tl.TaskResult.Failed, "No Api Key provided!");
+    if (!aiApiKey && !useManagedIdentity && !azureSubscription) {
+      tl.setResult(tl.TaskResult.Failed, "No authentication method provided! Please provide an API key, enable managed identity, or specify an Azure subscription service connection.");
       return;
     } else if (!aoiEndpoint) {
       tl.setResult(tl.TaskResult.Failed, "Only support Azure AI Service.");
@@ -92,6 +93,7 @@ async function run() {
         aoi: {
           apiKey: aiApiKey,
           aoiUseManagedIdentity: useManagedIdentity,
+          azureSubscription: azureSubscription,
           aoiEndpoint,
           aoiModelName: modelName,
           aoiModelResourceId: aoiModelResourceId,

@@ -1,7 +1,8 @@
 import { ReviewManager } from "./manager";
 import { AzureOpenAI } from "openai";
 import { ChatCompletionMessageParam, ChatCompletionCreateParamsNonStreaming } from "openai/resources";
-import { DefaultAzureCredential, getBearerTokenProvider,  } from "@azure/identity";
+import { DefaultAzureCredential, getBearerTokenProvider, ClientSecretCredential } from "@azure/identity";
+import * as tl from "azure-pipelines-task-lib";
 
 
 
@@ -9,9 +10,10 @@ interface GPTInput {
   resourceModelId: string;
   message: ChatCompletionMessageParam[];
   endpoint: string;
-  apiKey: string;
+  apiKey?: string;
   modelName?: string;
   useManagedIdentity?: boolean;
+  azureSubscription?: string;
 
   options?: {
     filename?: string;
@@ -30,19 +32,44 @@ export async function chatGPT(input: GPTInput) {
   const deployment = "gpt-4o";
   const apiVersion = "2025-01-01-preview";
   const endpoint = input.endpoint;
-  const credential = new DefaultAzureCredential();
   const scope = "https://cognitiveservices.azure.com/.default";
 
   const apiKey = input.apiKey;
-  const azureADTokenProvider = getBearerTokenProvider(credential, scope);
-
   const useManagedIdentity = input.useManagedIdentity || false;
+  const azureSubscription = input.azureSubscription;
 
-  const optionsWithKey = { deployment, apiVersion, endpoint, apiKey };
-  const optionsWithIdentity = {deployment, apiVersion, endpoint, azureADTokenProvider}
+  let client: AzureOpenAI;
 
-  const client = useManagedIdentity?
-  new AzureOpenAI(optionsWithIdentity) : new AzureOpenAI(optionsWithKey);
+  if (useManagedIdentity) {
+    // Use Managed Identity authentication
+    const credential = new DefaultAzureCredential();
+    const azureADTokenProvider = getBearerTokenProvider(credential, scope);
+    const optionsWithIdentity = { deployment, apiVersion, endpoint, azureADTokenProvider };
+    client = new AzureOpenAI(optionsWithIdentity);
+  } else if (azureSubscription) {
+    // Use Service Connection authentication
+    const auth = tl.getEndpointAuthorization(azureSubscription, false);
+    if (!auth) {
+      throw new Error(`Service connection "${azureSubscription}" not found or not accessible.`);
+    }
+    
+    const clientId = tl.getEndpointAuthorizationParameter(azureSubscription, 'serviceprincipalid', false);
+    const clientSecret = tl.getEndpointAuthorizationParameter(azureSubscription, 'serviceprincipalkey', false);
+    const tenantId = tl.getEndpointAuthorizationParameter(azureSubscription, 'tenantid', false);
+    
+    if (!clientId || !clientSecret || !tenantId) {
+      throw new Error('Service connection is missing required service principal credentials.');
+    }
+    
+    const credential = new ClientSecretCredential(tenantId, clientId, clientSecret);
+    const azureADTokenProvider = getBearerTokenProvider(credential, scope);
+    const optionsWithServiceConnection = { deployment, apiVersion, endpoint, azureADTokenProvider };
+    client = new AzureOpenAI(optionsWithServiceConnection);
+  } else {
+    // Use API Key authentication
+    const optionsWithKey = { deployment, apiVersion, endpoint, apiKey };
+    client = new AzureOpenAI(optionsWithKey);
+  }
   
 
   const chatOptions: ChatCompletionCreateParamsNonStreaming = {
@@ -52,22 +79,24 @@ export async function chatGPT(input: GPTInput) {
   };
 
   if (input.aiSearchExtension) {
-        data_sources:[{
-          type: "azure_search",
-          parameters: {
-          topNDocuments: 20,
-          strictness: 3,
-          endpoint: input.aiSearchExtension.endpoint,
-          indexName: input.aiSearchExtension.indexName,
-          authentication: useManagedIdentity ?{
-            type: "aad",
-          } : {
-            type: "api_key",
-            key: input.aiSearchExtension.apiKey,
-          }
+    (chatOptions as any).extra_body = {
+      data_sources:[{
+        type: "azure_search",
+        parameters: {
+        topNDocuments: 20,
+        strictness: 3,
+        endpoint: input.aiSearchExtension.endpoint,
+        indexName: input.aiSearchExtension.indexName,
+        authentication: (useManagedIdentity || azureSubscription) ? {
+          type: "aad",
+        } : {
+          type: "api_key",
+          key: input.aiSearchExtension.apiKey,
         }
-      }]
-    };
+      }
+    }]
+  };
+  }
   
 
   result = await client.chat.completions.create(chatOptions);
