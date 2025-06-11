@@ -10,9 +10,10 @@ const argv = yargs(process.argv.slice(2))
   .option("repoDir", { type: "string", demandOption: true })
   .option("sourceBranch", { type: "string", demandOption: true })
   .option("targetBranch", { type: "string", demandOption: true })
-  .option("oaiEndPoint", { type: "string", demandOption: true })
-  .option("oaiAPIKey", { type: "string", demandOption: true })
+  .option("oaiEndPoint", { type: "string", demandOption: false })
+  .option("oaiAPIKey", { type: "string", demandOption: false})
   .option("outputDir", { type: "string", demandOption: true })
+  .option("useManagedIdentity", {type: "boolean", demandOption: false})
   .parseSync();
 
 const inputRepoDir = argv.repoDir;
@@ -21,6 +22,7 @@ const inputTargetBranch = argv.targetBranch;
 const inputOaiEndPoint = argv.oaiEndPoint;
 const inputOaiAPIKey = argv.oaiAPIKey;
 const outputDir = argv.outputDir;
+const useManagedIdentity = argv.useManagedIdentity;
 
 (async () => {
   const git = simpleGit({
@@ -34,21 +36,27 @@ const outputDir = argv.outputDir;
 
   console.log("inputOaiEndPoint", inputOaiEndPoint);
 
+
+  const aoiInput: any = {
+    aoiModelResourceId: "gpt-4o",
+    aoiEndpoint: inputOaiEndPoint,
+    aoiUseManagedIdentity: useManagedIdentity,
+    commentLanguage: "en",
+    customInstruction: `
+      This project is a CPP project.
+      https://google.github.io/styleguide/
+      Please review with reference to the Google C++ Style Guide at that address.
+    `,
+  };
+  if (!useManagedIdentity) {
+    aoiInput.apiKey = inputOaiAPIKey;
+  }
+
   const prReviewResult = await reviewFile({
     targetBranch: inputTargetBranch,
     fileName: changedFiles[0],
     httpsAgent,
-    aoi: {
-      aoiModelResourceId: "llm-infra-4o",
-      apiKey: inputOaiAPIKey,
-      aoiEndpoint: inputOaiEndPoint,
-      commentLanguage: "ko",
-      customInstruction: `
-      이 프로젝트는 CPP 프로젝트입니다.
-      https://google.github.io/styleguide/
-      해당 주소의, Google C++ Style Guide를 참고하여 리뷰해주세요.
-      `,
-    },
+    aoi: aoiInput,
     inputGit: git,
   });
 

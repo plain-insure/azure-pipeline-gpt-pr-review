@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc -p .",
-    "test-pr": "NODE_ENV=test ts-node ./test/pr-test.ts",
-    "test-chat": "NODE_ENV=test ts-node ./test/chat-test.ts",
+    "test-pr": "cross-env NODE_ENV=test ts-node ./test/pr-test.ts",
+    "test-chat": "cross-env NODE_ENV=test ts-node ./test/chat-test.ts",
     "test-store": "NODE_ENV=test ts-node ./test/store-test.ts",
     "test-git": "NODE_ENV=test ts-node ./test/git-test.ts"
   },
@@ -14,22 +14,24 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@azure/identity": "^4.2.0",
-    "@azure/openai": "^1.0.0-beta.12",
+    "@azure/identity": "^4.10.0",
+    "@azure/openai": "^2.0.0",
     "@azure/storage-blob": "^12.18.0",
     "azure-pipelines-task-lib": "^4.3.1",
     "binary-extensions": "^2.2.0",
     "glob": "^10.4.1",
     "node-fetch": "^2.6.6",
-    "openai": "^4.47.2",
-    "simple-git": "^3.17.0"
+    "openai": "^4.104.0",
+    "simple-git": "^3.28.0"
   },
   "devDependencies": {
     "@types/glob": "^8.1.0",
-    "@types/node": "^18.15.3",
+    "@types/node": "^18.19.111",
     "@types/node-fetch": "^2.6.4",
     "@types/q": "^1.5.5",
     "@types/yargs": "^17.0.32",
+    "cross-env": "^7.0.3",
+    "ts-node": "^10.9.2",
     "yargs": "^17.7.2"
   }
 }

@@ -1,9 +1,9 @@
 {
     "manifestVersion": 1,
-    "id": "OAICodeReview",
-    "name": "GPT Code Review",
-    "version": "0.0.13",
-    "publisher": "JaeilYu",
+    "id": "AzureOpenAiCopilot",
+    "name": "Azure OpenAI Copilot",
+    "version": "1.0.0",
+    "publisher": "Plain",
     "galleryFlags": [
         "Public",
         "Preview"
@@ -13,7 +13,7 @@
             "id": "Microsoft.VisualStudio.Services"
         }
     ],
-    "description": "A task that code review Pull Request using GPT model",
+    "description": "Using a GPT model to review pull requests in Azure DevOps.",
     "categories": [
         "Azure Pipelines"
     ],
@@ -24,6 +24,7 @@
         "OpenAI",
         "GPT",
         "pullRequest",
+        "copilot",
         "review"
     ],
     "files": [
@@ -33,7 +34,7 @@
     ],
     "repository": {
         "type": "git",
-        "uri": "https://github.com/dbwodlf3/azure-pipeline-gpt-pr-review"
+        "uri": "https://github.com/plain-insure/azure-pipeline-gpt-pr-review"
     },
     "content": {
         "details": {
