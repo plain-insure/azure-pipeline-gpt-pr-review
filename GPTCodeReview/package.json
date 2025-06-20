@@ -18,22 +18,16 @@
     "@azure/identity": "^4.10.0",
     "@azure/openai": "^2.0.0",
     "@azure/storage-blob": "^12.18.0",
+    "@types/glob": "^8.1.0",
+    "@types/node": "^18.19.111",
+    "@types/node-fetch": "^2.6.4",
+    "@types/q": "^1.5.5",
     "azure-pipelines-task-lib": "^4.3.1",
     "binary-extensions": "^2.2.0",
     "glob": "^10.4.1",
     "node-fetch": "^2.6.6",
     "openai": "^4.104.0",
-    "simple-git": "^3.28.0"
-  },
-  "devDependencies": {
-    "@types/glob": "^8.1.0",
-    "@types/node": "^18.19.111",
-    "@types/node-fetch": "^2.6.4",
-    "@types/q": "^1.5.5",
-    "@types/yargs": "^17.0.32",
-    "cross-env": "^7.0.3",
-    "tfx-cli": "^0.21.1",
-    "ts-node": "^10.9.2",
-    "yargs": "^17.7.2"
+    "simple-git": "^3.28.0",
+    "ts-node": "^10.9.2"
   }
 }

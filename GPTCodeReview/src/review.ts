@@ -30,6 +30,7 @@ export async function reviewFile(input: {
     aoiModelResourceId: string;
     aoiModelName?: string;
     aoiUseManagedIdentity?: boolean;
+    azureSubscription?: string;
     // Optional Params
     aiSearchExtension?: {
       endpoint: string;
@@ -116,6 +117,7 @@ export async function reviewFile(input: {
       resourceModelId: resourceId,
       modelName: input.aoi.aoiModelName,
       useManagedIdentity: input.aoi.aoiUseManagedIdentity,
+      azureSubscription: input.aoi.azureSubscription,
       message: msg,
       options: {
         filename: `${input.fileName}`,

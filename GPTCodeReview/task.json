@@ -13,7 +13,7 @@
   "version": {
     "Major": "1",
     "Minor": "0",
-    "Patch": "0"
+    "Patch": "2"
   },
   "minimumAgentVersion": "1.95.0",
   "instanceNameFormat": "AzureOpenAiCopilot $(message)",
@@ -314,6 +314,14 @@
       "defaultValue": "false",
       "required": false,
       "helpMarkDown": "Select this option to use Azure Managed Identity for authentication."
+    },
+    {
+      "name": "azure_subscription",
+      "type": "connectedService:AzureRM",
+      "label": "Azure subscription",
+      "defaultValue": "",
+      "required": false,
+      "helpMarkDown": "Azure Resource Manager subscription to use for authentication. Alternative to API key or managed identity."
     }
   ],
   "execution": {
