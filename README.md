@@ -4,7 +4,7 @@ A task for Azure DevOps build pipelines to add GPT as PR reviewer
 ## Installation
 
 
-~~Installation can be done using [Visual Studio MarketPlace](https://marketplace.visualstudio.com/items?itemName=mustaphalarhrouch.GPTPullRequestReview).~~
+Installation can be done using [Visual Studio MarketPlace](https://marketplace.visualstudio.com/items?itemName=plain.AzureOpenAiCopilot).
 
 Source code and updates: [github.com/plain-insure/azure-pipeline-gpt-pr-review](https://github.com/plain-insure/azure-pipeline-gpt-pr-review)
 

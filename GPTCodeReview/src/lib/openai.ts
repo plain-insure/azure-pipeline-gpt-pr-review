@@ -1,7 +1,7 @@
 import { ReviewManager } from "./manager";
 import { AzureOpenAI } from "openai";
 import { ChatCompletionMessageParam, ChatCompletionCreateParamsNonStreaming } from "openai/resources";
-import { DefaultAzureCredential, getBearerTokenProvider, ClientSecretCredential } from "@azure/identity";
+import { DefaultAzureCredential, getBearerTokenProvider, ClientSecretCredential, WorkloadIdentityCredential, TokenCredential } from "@azure/identity";
 import * as tl from "azure-pipelines-task-lib";
 
 
@@ -62,22 +62,44 @@ export async function chatGPT(input: GPTInput) {
     if (!auth) {
       throw new Error(`Service connection "${azureSubscription}" not found or not accessible.`);
     }
-    
-    const clientId = tl.getEndpointAuthorizationParameter(azureSubscription, 'serviceprincipalid', false);
-    const clientSecret = tl.getEndpointAuthorizationParameter(azureSubscription, 'serviceprincipalkey', false);
-    const tenantId = tl.getEndpointAuthorizationParameter(azureSubscription, 'tenantid', false);
-    
-    if (!clientId || !clientSecret || !tenantId) {
-      throw new Error('Service connection is missing required service principal credentials.');
+    const scheme = auth.scheme.toLowerCase();
+    let credential : TokenCredential;
+    if (scheme === 'serviceprincipal') {
+      const clientId = tl.getEndpointAuthorizationParameter(azureSubscription, 'serviceprincipalid', false);
+      const clientSecret = tl.getEndpointAuthorizationParameter(azureSubscription, 'serviceprincipalkey', false);
+      const tenantId = tl.getEndpointAuthorizationParameter(azureSubscription, 'tenantid', false);
+
+      if (!clientId || !clientSecret || !tenantId) {
+        throw new Error('Service connection is missing required service principal credentials.');
+      }
+      credential = new ClientSecretCredential(tenantId, clientId, clientSecret);
+    } else if (scheme === 'workloadidentityfederation') {
+      const clientId = tl.getEndpointAuthorizationParameter(azureSubscription, 'clientid', false);
+      const tenantId = tl.getEndpointAuthorizationParameter(azureSubscription, 'tenantid', false);
+      const tokenFile = tl.getEndpointAuthorizationParameter(azureSubscription, 'federatedTokenFile', false);
+
+      if (!clientId || !tokenFile || !tenantId) {
+        throw new Error('Service connection is missing required workload identity federation credentials.');
+      }
+      process.env.AZURE_CLIENT_ID = clientId;
+      process.env.AZURE_TENANT_ID = tenantId;
+      process.env.AZURE_FEDERATED_TOKEN_FILE = tokenFile;
+
+      credential = new WorkloadIdentityCredential({
+        tenantId,
+        clientId,
+        tokenFilePath: tokenFile,
+      });
+    } else {
+      throw new Error(`Unsupported authentication scheme: ${scheme}`);
     }
-    
-    const credential = new ClientSecretCredential(tenantId, clientId, clientSecret);
+
     options.azureADTokenProvider = getBearerTokenProvider(credential, scope);
   } else {
     // Use API Key authentication
     options.apiKey = apiKey;
   }
-  
+
   const client = new AzureOpenAI(options);
 
   const chatOptions: ChatCompletionCreateParamsNonStreaming = {
@@ -87,23 +109,23 @@ export async function chatGPT(input: GPTInput) {
   };
 
   if (input.aiSearchExtension) {
-        data_sources:[{
-          type: "azure_search",
-          parameters: {
-          topNDocuments: 20,
-          strictness: 3,
-          endpoint: input.aiSearchExtension.endpoint,
-          indexName: input.aiSearchExtension.indexName,
-          authentication: useManagedIdentity ?{
-            type: "aad",
-          } : {
-            type: "api_key",
-            key: input.aiSearchExtension.apiKey,
-          }
+    data_sources: [{
+      type: "azure_search",
+      parameters: {
+        topNDocuments: 20,
+        strictness: 3,
+        endpoint: input.aiSearchExtension.endpoint,
+        indexName: input.aiSearchExtension.indexName,
+        authentication: useManagedIdentity ? {
+          type: "aad",
+        } : {
+          type: "api_key",
+          key: input.aiSearchExtension.apiKey,
         }
-      }]
-    };
-  
+      }
+    }]
+  };
+
 
   result = await client.chat.completions.create(chatOptions);
 
