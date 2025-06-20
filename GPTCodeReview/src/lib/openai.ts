@@ -1,7 +1,7 @@
 import { ReviewManager } from "./manager";
 import { AzureOpenAI } from "openai";
 import { ChatCompletionMessageParam, ChatCompletionCreateParamsNonStreaming } from "openai/resources";
-import { DefaultAzureCredential, getBearerTokenProvider,  } from "@azure/identity";
+import { DefaultAzureCredential, getBearerTokenProvider, } from "@azure/identity";
 
 
 
@@ -9,7 +9,7 @@ interface GPTInput {
   resourceModelId: string;
   message: ChatCompletionMessageParam[];
   endpoint: string;
-  apiKey: string;
+  apiKey?: string;
   modelName?: string;
   useManagedIdentity?: boolean;
 
@@ -30,20 +30,21 @@ export async function chatGPT(input: GPTInput) {
   const deployment = "gpt-4o";
   const apiVersion = "2025-01-01-preview";
   const endpoint = input.endpoint;
-  const credential = new DefaultAzureCredential();
   const scope = "https://cognitiveservices.azure.com/.default";
-
-  const apiKey = input.apiKey;
-  const azureADTokenProvider = getBearerTokenProvider(credential, scope);
 
   const useManagedIdentity = input.useManagedIdentity || false;
 
-  const optionsWithKey = { deployment, apiVersion, endpoint, apiKey };
-  const optionsWithIdentity = {deployment, apiVersion, endpoint, azureADTokenProvider}
+  const sharedOptions = {
+    deployment,
+    apiVersion,
+    endpoint,
+  };
 
-  const client = useManagedIdentity?
-  new AzureOpenAI(optionsWithIdentity) : new AzureOpenAI(optionsWithKey);
-  
+  const options = useManagedIdentity ?
+    { ...sharedOptions, azureADTokenProvider: getBearerTokenProvider(new DefaultAzureCredential(), scope) } :
+    { ...sharedOptions, apiKey: input.apiKey };
+
+  const client = new AzureOpenAI(options);
 
   const chatOptions: ChatCompletionCreateParamsNonStreaming = {
     max_tokens: 1024,
@@ -52,23 +53,23 @@ export async function chatGPT(input: GPTInput) {
   };
 
   if (input.aiSearchExtension) {
-        data_sources:[{
-          type: "azure_search",
-          parameters: {
-          topNDocuments: 20,
-          strictness: 3,
-          endpoint: input.aiSearchExtension.endpoint,
-          indexName: input.aiSearchExtension.indexName,
-          authentication: useManagedIdentity ?{
-            type: "aad",
-          } : {
-            type: "api_key",
-            key: input.aiSearchExtension.apiKey,
-          }
+    data_sources: [{
+      type: "azure_search",
+      parameters: {
+        topNDocuments: 20,
+        strictness: 3,
+        endpoint: input.aiSearchExtension.endpoint,
+        indexName: input.aiSearchExtension.indexName,
+        authentication: useManagedIdentity ? {
+          type: "aad",
+        } : {
+          type: "api_key",
+          key: input.aiSearchExtension.apiKey,
         }
-      }]
-    };
-  
+      }
+    }]
+  };
+
 
   result = await client.chat.completions.create(chatOptions);
 
@@ -76,18 +77,18 @@ export async function chatGPT(input: GPTInput) {
 
 
   const usageData = result.usage
-  ? {
+    ? {
       completionTokens: result.usage.completion_tokens,
       promptTokens: result.usage.prompt_tokens,
       totalTokens: result.usage.total_tokens,
     }
-  : undefined;
+    : undefined;
 
-ReviewManager.info.usages.push({
-  filename: input.options?.filename || "<<Undefined Filename>>",
-  usages: usageData,
-});
-  
+  ReviewManager.info.usages.push({
+    filename: input.options?.filename || "<<Undefined Filename>>",
+    usages: usageData,
+  });
+
 
   return result;
 }
