@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc -p .",
+    "package": "cd ../ && tfx extension create --manifest-globs vss-extension.json",
     "test-pr": "cross-env NODE_ENV=test ts-node ./test/pr-test.ts",
     "test-chat": "cross-env NODE_ENV=test ts-node ./test/chat-test.ts",
     "test-store": "NODE_ENV=test ts-node ./test/store-test.ts",
@@ -31,6 +32,7 @@
     "@types/q": "^1.5.5",
     "@types/yargs": "^17.0.32",
     "cross-env": "^7.0.3",
+    "tfx-cli": "^0.21.1",
     "ts-node": "^10.9.2",
     "yargs": "^17.7.2"
   }

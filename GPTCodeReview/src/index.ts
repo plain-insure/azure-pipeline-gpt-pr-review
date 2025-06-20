@@ -42,7 +42,7 @@ async function run() {
         | "yo" | "za" | "zh" | "zu";
     const filePattern = tl.getInput("file_pattern");
     const aiApiKey = tl.getInput("api_key", false);
-    const useManagedIdentity = tl.getBoolInput("use_managed_identity");
+    const useManagedIdentity = tl.getBoolInput("use_managed_identity", false);
     const azureSubscription = tl.getInput("azure_subscription", false);
     const modelName = tl.getInput("model_name", false) || "gpt-4o";
     const aoiEndpoint = tl.getInput("aoi_endpoint", true);
