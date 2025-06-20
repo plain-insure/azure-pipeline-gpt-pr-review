@@ -2,7 +2,7 @@
     "manifestVersion": 1,
     "id": "AzureOpenAiCopilot",
     "name": "Azure OpenAI Copilot",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "publisher": "Plain",
     "galleryFlags": [
         "Public",
@@ -13,7 +13,7 @@
             "id": "Microsoft.VisualStudio.Services"
         }
     ],
-    "description": "Using a GPT model to review pull requests in Azure DevOps.",
+    "description": "Using a GPT model to review pull requests in Azure DevOps. Can use Azure OpenAI or OpenAI models. Supports API Key and Managed Identity authentication. Managed Identity can be provided by service connections or by the agent itself.",
     "categories": [
         "Azure Pipelines"
     ],

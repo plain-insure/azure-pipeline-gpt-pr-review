@@ -11,7 +11,6 @@ interface GPTInput {
   message: ChatCompletionMessageParam[];
   endpoint: string;
   apiKey?: string;
-  apiKey?: string;
   modelName?: string;
   useManagedIdentity?: boolean;
   azureSubscription?: string;
@@ -36,19 +35,27 @@ export async function chatGPT(input: GPTInput) {
   const scope = "https://cognitiveservices.azure.com/.default";
 
   const apiKey = input.apiKey;
-  const azureADTokenProvider = getBearerTokenProvider(credential, scope);
 
   const useManagedIdentity = input.useManagedIdentity || false;
   const azureSubscription = input.azureSubscription;
 
-  let client: AzureOpenAI;
+  const options: {
+    apiKey?: string;
+    azureADTokenProvider?: ReturnType<typeof getBearerTokenProvider>;
+    deployment: string;
+    apiVersion: string;
+    endpoint: string;
+  } = {
+    deployment,
+    apiVersion,
+    endpoint,
+  };
+
 
   if (useManagedIdentity) {
     // Use Managed Identity authentication
     const credential = new DefaultAzureCredential();
-    const azureADTokenProvider = getBearerTokenProvider(credential, scope);
-    const optionsWithIdentity = { deployment, apiVersion, endpoint, azureADTokenProvider };
-    client = new AzureOpenAI(optionsWithIdentity);
+    options.azureADTokenProvider = getBearerTokenProvider(credential, scope);
   } else if (azureSubscription) {
     // Use Service Connection authentication
     const auth = tl.getEndpointAuthorization(azureSubscription, false);
@@ -65,26 +72,12 @@ export async function chatGPT(input: GPTInput) {
     }
     
     const credential = new ClientSecretCredential(tenantId, clientId, clientSecret);
-    const azureADTokenProvider = getBearerTokenProvider(credential, scope);
-    const optionsWithServiceConnection = { deployment, apiVersion, endpoint, azureADTokenProvider };
-    client = new AzureOpenAI(optionsWithServiceConnection);
+    options.azureADTokenProvider = getBearerTokenProvider(credential, scope);
   } else {
     // Use API Key authentication
-    const optionsWithKey = { deployment, apiVersion, endpoint, apiKey };
-    client = new AzureOpenAI(optionsWithKey);
+    options.apiKey = apiKey;
   }
   
-
-  const sharedOptions = {
-    deployment,
-    apiVersion,
-    endpoint,
-  };
-
-  const options = useManagedIdentity ?
-    { ...sharedOptions, azureADTokenProvider: getBearerTokenProvider(new DefaultAzureCredential(), scope) } :
-    { ...sharedOptions, apiKey: input.apiKey };
-
   const client = new AzureOpenAI(options);
 
   const chatOptions: ChatCompletionCreateParamsNonStreaming = {
