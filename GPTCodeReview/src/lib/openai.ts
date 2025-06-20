@@ -3,7 +3,9 @@ import { AzureOpenAI } from "openai";
 import { ChatCompletionMessageParam, ChatCompletionCreateParamsNonStreaming } from "openai/resources";
 import { DefaultAzureCredential, getBearerTokenProvider, ClientSecretCredential, WorkloadIdentityCredential, TokenCredential } from "@azure/identity";
 import * as tl from "azure-pipelines-task-lib";
-
+import * as os from "os";
+import * as fs from "fs";
+import * as path from "path";
 
 
 interface GPTInput {
@@ -25,6 +27,29 @@ interface GPTInput {
     apiKey: string;
   };
 }
+
+
+async function generateToken(serviceConnectionID: string): Promise<string> {
+  const url = process.env["SYSTEM_OIDCREQUESTURI"] + "?api-version=7.1&serviceConnectionId=" + serviceConnectionID;
+  var oidcToken = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + tl.getEndpointAuthorizationParameter('SystemVssConnection', 'AccessToken', false)
+    }
+  }).then(async response => {
+    var oidcObject = await (response?.json()) as { oidcToken: string };
+
+    if (!oidcObject?.oidcToken) {
+      throw new Error(tl.loc("Error_FederatedTokenAquisitionFailed"));
+    }
+    return oidcObject.oidcToken;
+  });
+
+  tl.setSecret(oidcToken);
+  return oidcToken;
+}
+
 
 export async function chatGPT(input: GPTInput) {
   let result;
@@ -58,12 +83,23 @@ export async function chatGPT(input: GPTInput) {
     options.azureADTokenProvider = getBearerTokenProvider(credential, scope);
   } else if (azureSubscription) {
     // Use Service Connection authentication
-    const auth = tl.getEndpointAuthorization(azureSubscription, false);
+    console.log(`Using Azure Subscription: ${azureSubscription}`);
+    const auth = tl.getEndpointAuthorization(azureSubscription, true);
+    let scheme = 'workloadidentityfederation'
     if (!auth) {
-      throw new Error(`Service connection "${azureSubscription}" not found or not accessible.`);
+      console.log(`Service connection "${azureSubscription}" not found or not accessible.`);
+    } else {
+      scheme = auth.scheme.toLowerCase()
     }
-    const scheme = auth.scheme.toLowerCase();
-    let credential : TokenCredential;
+    console.log(`Auth scheme: ${scheme}`);
+
+
+    interface WorkloadIdentityFederationCredentials {
+      servicePrincipalId: string | undefined;
+      oidcToken: string;
+    }
+
+    let credential: TokenCredential;
     if (scheme === 'serviceprincipal') {
       const clientId = tl.getEndpointAuthorizationParameter(azureSubscription, 'serviceprincipalid', false);
       const clientSecret = tl.getEndpointAuthorizationParameter(azureSubscription, 'serviceprincipalkey', false);
@@ -74,9 +110,21 @@ export async function chatGPT(input: GPTInput) {
       }
       credential = new ClientSecretCredential(tenantId, clientId, clientSecret);
     } else if (scheme === 'workloadidentityfederation') {
-      const clientId = tl.getEndpointAuthorizationParameter(azureSubscription, 'clientid', false);
+      const clientId = tl.getEndpointAuthorizationParameter(azureSubscription, "serviceprincipalid", true);
+
       const tenantId = tl.getEndpointAuthorizationParameter(azureSubscription, 'tenantid', false);
-      const tokenFile = tl.getEndpointAuthorizationParameter(azureSubscription, 'federatedTokenFile', false);
+      let tokenFile = tl.getEndpointAuthorizationParameter(azureSubscription, 'federatedTokenFile', true);
+      if (!tokenFile) {
+        const oidcToken = await generateToken(azureSubscription);
+        // Write the token to a temporary file
+        const tmpDir = os.tmpdir();
+        const tokenFilePath = path.join(tmpDir, `oidc-token-${Date.now()}.txt`);
+        fs.writeFileSync(tokenFilePath, oidcToken, { encoding: "utf8" });
+
+        // Set tokenFile to the path
+        tokenFile = tokenFilePath;
+        tl.setSecret(oidcToken);
+      }
 
       if (!clientId || !tokenFile || !tenantId) {
         throw new Error('Service connection is missing required workload identity federation credentials.');

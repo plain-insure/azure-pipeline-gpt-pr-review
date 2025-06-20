@@ -23,6 +23,7 @@
     "@types/node-fetch": "^2.6.4",
     "@types/q": "^1.5.5",
     "azure-pipelines-task-lib": "^4.3.1",
+    "azure-pipelines-tasks-artifacts-common": "^2.256.0",
     "binary-extensions": "^2.2.0",
     "glob": "^10.4.1",
     "node-fetch": "^2.6.6",

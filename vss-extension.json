@@ -2,7 +2,7 @@
     "manifestVersion": 1,
     "id": "AzureOpenAiCopilot",
     "name": "Azure OpenAI Copilot",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "publisher": "Plain",
     "galleryFlags": [
         "Public",
