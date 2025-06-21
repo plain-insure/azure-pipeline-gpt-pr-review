@@ -1,40 +1,40 @@
 import * as tl from "azure-pipelines-task-lib";
 import { Agent } from "https";
 import fetch from "node-fetch";
+import {
+  getPullRequestThreadsUrl,
+  getPullRequestCommentsUrl,
+  getDeleteCommentUrl,
+  getAuthorizationHeader,
+  getBuildServiceName,
+} from "./azure-devops-helpers";
+import { AZURE_DEVOPS, MESSAGES } from "./constants";
 
 export async function addCommentToPR(
   fileName: string,
   comment: string,
   httpsAgent: Agent
-) {
+): Promise<void> {
   const body = {
     comments: [
       {
         parentCommentId: 0,
         content: comment,
-        commentType: 1,
+        commentType: AZURE_DEVOPS.COMMENT_TYPE.TEXT,
       },
     ],
-    status: 1,
+    status: AZURE_DEVOPS.THREAD_STATUS.ACTIVE,
     threadContext: {
       filePath: fileName,
     },
   };
 
-  const prUrl = `${tl.getVariable(
-    "SYSTEM.TEAMFOUNDATIONCOLLECTIONURI"
-  )}${tl.getVariable(
-    "SYSTEM.TEAMPROJECTID"
-  )}/_apis/git/repositories/${tl.getVariable(
-    "Build.Repository.Name"
-  )}/pullRequests/${tl.getVariable(
-    "System.PullRequest.PullRequestId"
-  )}/threads?api-version=5.1`;
+  const prUrl = getPullRequestThreadsUrl();
 
-  var response = await fetch(prUrl, {
+  const response = await fetch(prUrl, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${tl.getVariable("SYSTEM.ACCESSTOKEN")}`,
+      Authorization: getAuthorizationHeader(),
       "Content-Type": "application/json",
     },
     body: JSON.stringify(body),
@@ -46,94 +46,52 @@ export async function addCommentToPR(
     console.error(`Failed to add comment: ${errorText}`);
     throw new Error(`Failed to add comment: ${response.status} ${errorText}`);
   }
-  console.log(`New comment added.`);
+  console.log(MESSAGES.NEW_COMMENT_ADDED);
 }
 
-export async function deleteExistingComments(httpsAgent: Agent) {
-  console.log("Start deleting existing comments added by the previous Job ...");
+export async function deleteExistingComments(httpsAgent: Agent): Promise<void> {
+  console.log(MESSAGES.DELETING_COMMENTS);
 
-  const threadsUrl = `${tl.getVariable(
-    "SYSTEM.TEAMFOUNDATIONCOLLECTIONURI"
-  )}${tl.getVariable(
-    "SYSTEM.TEAMPROJECTID"
-  )}/_apis/git/repositories/${tl.getVariable(
-    "Build.Repository.Name"
-  )}/pullRequests/${tl.getVariable(
-    "System.PullRequest.PullRequestId"
-  )}/threads?api-version=5.1`;
+  const threadsUrl = getPullRequestThreadsUrl();
   const threadsResponse = await fetch(threadsUrl, {
     headers: {
-      Authorization: `Bearer ${tl.getVariable("SYSTEM.ACCESSTOKEN")}`,
+      Authorization: getAuthorizationHeader(),
     },
     agent: httpsAgent,
   });
 
-  const threads = (await threadsResponse.json()) as { value: [] };
+  const threads = (await threadsResponse.json()) as { value: any[] };
   const threadsWithContext = threads.value.filter(
     (thread: any) => thread.threadContext !== null
   );
 
-  const collectionUri = tl.getVariable(
-    "SYSTEM.TEAMFOUNDATIONCOLLECTIONURI"
-  ) as string;
-  const collectionName = getCollectionName(collectionUri);
-  const buildServiceName = `${tl.getVariable(
-    "SYSTEM.TEAMPROJECT"
-  )} Build Service (${collectionName})`;
+  const buildServiceName = getBuildServiceName();
 
-  for (const thread of threadsWithContext as any[]) {
-    const commentsUrl = `${tl.getVariable(
-      "SYSTEM.TEAMFOUNDATIONCOLLECTIONURI"
-    )}${tl.getVariable(
-      "SYSTEM.TEAMPROJECTID"
-    )}/_apis/git/repositories/${tl.getVariable(
-      "Build.Repository.Name"
-    )}/pullRequests/${tl.getVariable(
-      "System.PullRequest.PullRequestId"
-    )}/threads/${thread.id}/comments?api-version=5.1`;
+  for (const thread of threadsWithContext) {
+    const commentsUrl = getPullRequestCommentsUrl(thread.id);
     const commentsResponse = await fetch(commentsUrl, {
       headers: {
-        Authorization: `Bearer ${tl.getVariable("SYSTEM.ACCESSTOKEN")}`,
+        Authorization: getAuthorizationHeader(),
       },
       agent: httpsAgent,
     });
 
-    const comments = (await commentsResponse.json()) as { value: [] };
+    const comments = (await commentsResponse.json()) as { value: any[] };
 
     for (const comment of comments.value.filter(
       (comment: any) => comment.author.displayName === buildServiceName
-    ) as any[]) {
-      const removeCommentUrl = `${tl.getVariable(
-        "SYSTEM.TEAMFOUNDATIONCOLLECTIONURI"
-      )}${tl.getVariable(
-        "SYSTEM.TEAMPROJECTID"
-      )}/_apis/git/repositories/${tl.getVariable(
-        "Build.Repository.Name"
-      )}/pullRequests/${tl.getVariable(
-        "System.PullRequest.PullRequestId"
-      )}/threads/${thread.id}/comments/${comment.id}?api-version=5.1`;
+    )) {
+      const removeCommentUrl = getDeleteCommentUrl(thread.id, comment.id);
 
       await fetch(removeCommentUrl, {
         method: "DELETE",
         headers: {
-          Authorization: `Bearer ${tl.getVariable("SYSTEM.ACCESSTOKEN")}`,
+          Authorization: getAuthorizationHeader(),
         },
         agent: httpsAgent,
       });
     }
   }
 
-  console.log("Existing comments deleted.");
-}
-
-function getCollectionName(collectionUri: string) {
-  const collectionUriWithoutProtocol = collectionUri!
-    .replace("https://", "")
-    .replace("http://", "");
-
-  if (collectionUriWithoutProtocol.includes(".visualstudio.")) {
-    return collectionUriWithoutProtocol.split(".visualstudio.")[0];
-  } else {
-    return collectionUriWithoutProtocol.split("/")[1];
-  }
+  console.log(MESSAGES.EXISTING_COMMENTS_DELETED);
 }
