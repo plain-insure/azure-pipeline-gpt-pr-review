@@ -1,29 +1,37 @@
-import { SimpleGitOptions, SimpleGit, simpleGit } from "simple-git";
+import { SimpleGit, simpleGit } from "simple-git";
+import { GIT_CONFIG } from "../constants";
 
-export async function getGitDiff(input: {
+interface GitDiffInput {
   gitDir: string;
   sourceBranch: string;
   targetBranch: string;
-}) {
-  const result: any[] = [];
+}
 
-  const git = simpleGit({ baseDir: input.gitDir, binary: "git" });
+interface GitDiffOutput {
+  filename: string;
+  content: string;
+}
 
-  let __diff_files = await git.diff([
+export async function getGitDiff(input: GitDiffInput): Promise<GitDiffOutput[]> {
+  const result: GitDiffOutput[] = [];
+
+  const git: SimpleGit = simpleGit({ baseDir: input.gitDir, binary: "git" });
+
+  const diffFiles = await git.diff([
     input.targetBranch,
     "--name-only",
-    "--diff-filter=AMD",
+    `--diff-filter=${GIT_CONFIG.DIFF_FILTER}`,
   ]);
 
-  const diff_files = __diff_files.trim().split("\n");
+  const fileList = diffFiles.trim().split("\n").filter(file => file.trim().length > 0);
 
-  for (const file of diff_files) {
+  for (const file of fileList) {
     const diff = await git.diff([input.targetBranch, "--", file]);
-    const diff_output = {
+    const diffOutput: GitDiffOutput = {
       filename: file,
       content: diff,
     };
-    result.push(diff_output);
+    result.push(diffOutput);
   }
 
   return result;

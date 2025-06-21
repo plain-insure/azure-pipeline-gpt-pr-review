@@ -3,30 +3,26 @@ import { glob } from "glob";
 import { DefaultAzureCredential } from "@azure/identity";
 import { BlobServiceClient } from "@azure/storage-blob";
 
-function readFiles(input: { root: string; pattern: RegExp }) {}
-
-export async function uploadStore(input: {
+interface UploadStoreInput {
   storageEndpoint: string;
   globPattern: string[];
   globIgnorePattern?: string[];
-}) {
+}
+
+export async function uploadStore(input: UploadStoreInput): Promise<void> {
   const credential = new DefaultAzureCredential();
   const blobClient = new BlobServiceClient(input.storageEndpoint, credential);
   const containerClient = blobClient.getContainerClient("repos");
 
-  const filenames = await glob(input.globPattern, {
-    ignore: input.globIgnorePattern,
-  });
+  const globOptions = input.globIgnorePattern ? { ignore: input.globIgnorePattern } : {};
+  const filenames = await glob(input.globPattern, globOptions);
 
-  // console.log(fs.readFileSync(files[0]));
+  console.log(`Found ${filenames.length} files to upload:`, filenames);
 
-  console.log(filenames);
-
-  for (const filename of filenames) {
-    new Promise(async () => {
+  const uploadPromises = filenames.map(async (filename) => {
+    try {
       const file = fs.readFileSync(filename);
       const uploadname = filename.split("/").slice(3).join("/");
-      // console.log(filename);
       const blobName = `iwtk/${uploadname}`;
       const blockBlobClient = containerClient.getBlockBlobClient(blobName);
 
@@ -34,8 +30,15 @@ export async function uploadStore(input: {
         file,
         file.byteLength
       );
-    });
-  }
+      
+      console.log(`Uploaded ${filename} to ${blobName}`);
+      return uploadResponse;
+    } catch (error) {
+      console.error(`Failed to upload ${filename}:`, error);
+      throw error;
+    }
+  });
 
-  const client = "";
+  await Promise.all(uploadPromises);
+  console.log(`Successfully uploaded ${filenames.length} files`);
 }
