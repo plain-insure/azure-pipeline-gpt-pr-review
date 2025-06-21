@@ -17,11 +17,7 @@ export const ReviewManager: IReviewManager = {
     usages: [] as ReviewUsage[],
   },
   reviewOptions: {
-    git: {
-      patchLimit: undefined,
-    },
-    aoi: {
-      tokenLimit: undefined,
-    },
+    git: {},
+    aoi: {},
   },
 };
