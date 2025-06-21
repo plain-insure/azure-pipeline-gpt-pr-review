@@ -40,13 +40,12 @@ export async function addCommentToPR(
     body: JSON.stringify(body),
     agent: httpsAgent,
   });
-  console.log(`Response status: ${response.status}`);
+  
   if (!response.ok) { 
     const errorText = await response.text();
     console.error(`Failed to add comment: ${errorText}`);
     throw new Error(`Failed to add comment: ${response.status} ${errorText}`);
   }
-  console.log(body);
   console.log(`New comment added.`);
 }
 
