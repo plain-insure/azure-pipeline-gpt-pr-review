@@ -1,9 +1,9 @@
 {
     "manifestVersion": 1,
-    "id": "OAICodeReview",
-    "name": "GPT Code Review",
-    "version": "0.0.13",
-    "publisher": "JaeilYu",
+    "id": "AzureOpenAiCopilot",
+    "name": "Azure OpenAI Copilot",
+    "version": "1.0.4",
+    "publisher": "Plain",
     "galleryFlags": [
         "Public",
         "Preview"
@@ -13,7 +13,7 @@
             "id": "Microsoft.VisualStudio.Services"
         }
     ],
-    "description": "A task that code review Pull Request using GPT model",
+    "description": "Review Azure DevOps PRs using Azure OpenAI or OpenAI models. Supports API Key and Managed Identity authentication.",
     "categories": [
         "Azure Pipelines"
     ],
@@ -24,6 +24,7 @@
         "OpenAI",
         "GPT",
         "pullRequest",
+        "copilot",
         "review"
     ],
     "files": [
@@ -33,11 +34,11 @@
     ],
     "repository": {
         "type": "git",
-        "uri": "https://github.com/dbwodlf3/azure-pipeline-gpt-pr-review"
+        "uri": "https://github.com/plain-insure/azure-pipeline-gpt-pr-review"
     },
     "content": {
         "details": {
-            "path": "overview.md"
+            "path": "README.md"
         }
     },
     "contributions": [

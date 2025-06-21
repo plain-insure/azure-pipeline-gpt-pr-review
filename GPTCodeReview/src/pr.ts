@@ -31,7 +31,7 @@ export async function addCommentToPR(
     "System.PullRequest.PullRequestId"
   )}/threads?api-version=5.1`;
 
-  await fetch(prUrl, {
+  var response = await fetch(prUrl, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${tl.getVariable("SYSTEM.ACCESSTOKEN")}`,
@@ -40,7 +40,12 @@ export async function addCommentToPR(
     body: JSON.stringify(body),
     agent: httpsAgent,
   });
-
+  
+  if (!response.ok) { 
+    const errorText = await response.text();
+    console.error(`Failed to add comment: ${errorText}`);
+    throw new Error(`Failed to add comment: ${response.status} ${errorText}`);
+  }
   console.log(`New comment added.`);
 }
 

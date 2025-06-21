@@ -112,3 +112,5 @@ dist
 *.vsix
 
 *.js
+.azure
+*.zip
