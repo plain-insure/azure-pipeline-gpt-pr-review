@@ -6,6 +6,7 @@ import * as tl from "azure-pipelines-task-lib";
 import * as os from "os";
 import * as fs from "fs";
 import * as path from "path";
+import fetch from "node-fetch";
 
 
 interface GPTInput {
