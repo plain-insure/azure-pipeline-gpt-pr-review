@@ -15,7 +15,7 @@
     "Minor": "0",
     "Patch": "4"
   },
-  "minimumAgentVersion": "1.95.0",
+  "minimumAgentVersion": "2.206.1",
   "instanceNameFormat": "AzureOpenAiCopilot $(message)",
   "inputs": [
     {
@@ -325,15 +325,6 @@
     }
   ],
   "execution": {
-    "Node10": {
-      "target": "dist/index.js"
-    },
-    "Node12": {
-      "target": "dist/index.js"
-    },
-    "Node14": {
-      "target": "dist/index.js"
-    },
     "Node16": {
       "target": "dist/index.js"
     },
